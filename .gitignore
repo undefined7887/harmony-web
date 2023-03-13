@@ -1,0 +1,8 @@
+.idea
+
+# Project
+dist
+node_modules
+
+# Yarn
+yarn-error.log
