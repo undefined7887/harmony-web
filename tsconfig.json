@@ -1,11 +1,12 @@
 {
   "compilerOptions": {
     "jsx": "react",
-    "target": "ES2020",
-    "module": "ES2020",
+    "target": "ES5",
+    "module": "CommonJS",
     "sourceMap": true,
     "esModuleInterop": true,
     "moduleResolution": "Node",
+    "resolveJsonModule": true,
     "types": [
       "node"
     ],
@@ -16,14 +17,10 @@
     "paths": {
       "src/*": [
         "./src/*"
+      ],
+      "assets/*": [
+        "./assets/*"
       ]
-    }
-  },
-  "ts-node": {
-    "compilerOptions": {
-      "target": "ES5",
-      "module": "CommonJS",
-      "esModuleInterop": true
     }
   }
 }

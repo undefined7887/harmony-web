@@ -1,0 +1,79 @@
+@import "src/base.scss";
+
+.Logo {
+  position: absolute;
+  top: 5%;
+  left: 3%;
+  height: 50px;
+}
+
+.Window {
+  @extend .Center;
+  @extend .FlexColumn;
+
+  box-sizing: border-box;
+  width: 420px;
+  height: 550px;
+  padding: 70px 50px 30px 50px;
+  border-radius: 40px;
+  background-color: $color_background_surface;
+}
+
+.Title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: $color_text_main;
+}
+
+.Hint {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 60px;
+  color: $color_text_hint;
+}
+
+.Button {
+  @extend .FlexRow;
+
+  font-size: 16px;
+  box-sizing: border-box;
+  width: 100%;
+  height: 60px;
+  padding: 0 20px 0 0;
+  cursor: pointer;
+  border-radius: 30px;
+  background-color: $color_background_element;
+}
+
+.Google {
+  @extend .FlexCenter;
+
+  width: 72px;
+  height: 100%;
+  border-radius: 30px;
+  background: $color_background_element_top;
+}
+
+.GoogleIcon {
+  width: 32px;
+  height: 32px;
+}
+
+.GoogleText {
+  font-size: 16px;
+  font-weight: 500;
+  color: $color_text_main;
+}
+
+.BuildInfo {
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  color: $color_text_hint;
+}
+
+.Author {
+  color: $color_main_first;
+}

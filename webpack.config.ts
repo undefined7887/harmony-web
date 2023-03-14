@@ -1,4 +1,5 @@
 import path from "path";
+import {version} from './package.json';
 
 import * as webpack from "webpack";
 import "webpack-dev-server"
@@ -45,6 +46,7 @@ function mainConfig(env: Environment): webpack.Configuration {
                     extensions: [".js", ".ts", ".tsx", ".css", ".scss"],
                     alias: aliasHelper({
                         src: "src",
+                        assets: "assets"
                     })
                 }
             }
@@ -83,18 +85,17 @@ function mainConfig(env: Environment): webpack.Configuration {
                             }
                         },
                     ]
-
                 }
             }
         },
 
         function pluginsConfig() {
-            let version = Shell.exec("git log --pretty=format:%h -n 1")
+            let commit = Shell.exec("git log --pretty=format:%h -n 1")
 
             return {
                 plugins: [
                     new webpack.DefinePlugin({
-                        "process.env.HARMONY_VERSION": `"${version}"`
+                        "process.env.HARMONY_VERSION": `"v${version}-${commit}"`
                     }),
 
                     new MiniCssExtractPlugin(),
@@ -113,7 +114,7 @@ function mainConfig(env: Environment): webpack.Configuration {
                 devServer: {
                     host: "127.0.0.1",
                     port: 8080,
-                    open: "/",
+                    open: "/auth",
                     compress: true,
                     historyApiFallback: true
                 }

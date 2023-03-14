@@ -1,7 +1,8 @@
 import React from "react";
 import {BrowserRouter, Route, Routes} from "react-router-dom";
 
-import Styles from "./App.module.scss"
+import "./App.scss";
+
 import AppRoutes from "src/routes";
 
 // Pages
