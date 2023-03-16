@@ -1,7 +1,8 @@
 import React from "react";
+import Styles from "./Space.module.scss";
 
 export function Space() {
     return (
-        <div style={{flex: 2}}/>
+        <div className={Styles.Space}/>
     )
 }

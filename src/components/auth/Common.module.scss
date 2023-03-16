@@ -1,0 +1,27 @@
+@import "src/base.scss";
+
+.Window {
+  @extend .Center;
+  @extend .FlexColumn;
+
+  box-sizing: border-box;
+  width: 420px;
+  height: 570px;
+  padding: 70px 50px 40px 50px;
+  border-radius: 40px;
+  background-color: $col_back_surface;
+}
+
+.Title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: $col_text_white;
+}
+
+.Hint {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 50px;
+  color: $col_text_hint;
+}

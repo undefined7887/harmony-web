@@ -1,0 +1,46 @@
+@import "./Common.module.scss";
+
+.Button {
+  @extend .FlexRow;
+
+  font-size: 16px;
+  box-sizing: border-box;
+  width: 100%;
+  height: 60px;
+  padding: 0 20px 0 0;
+  cursor: pointer;
+  border-radius: 30px;
+  background-color: $col_back_elem;
+}
+
+.Google {
+  @extend .FlexCenter;
+
+  width: 72px;
+  height: 100%;
+  border-radius: 30px;
+  background: $col_back_elem_1;
+}
+
+.GoogleIcon {
+  width: 32px;
+  height: 32px;
+}
+
+.GoogleText {
+  font-size: 16px;
+  font-weight: 500;
+  color: $col_text_white;
+}
+
+.BuildInfo {
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  color: $col_text_hint;
+}
+
+.Author {
+  color: $col_main_1;
+}
