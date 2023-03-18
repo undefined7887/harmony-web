@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React from "react";
 import {useSelector} from "react-redux";
 
 import Styles from "./AuthPage.module.scss"
@@ -9,17 +9,25 @@ import {SignInWindow} from "src/render/auth/SignInWindow";
 import {SignUpWindow} from "src/render/auth/SignUpWindow";
 
 import {AppState} from "src/feature/store";
-import {Step} from "src/feature/auth/slice";
+import {State, Step} from "src/feature/auth/slice";
+import {Logo} from "src/render/logo/Logo";
+import {Simulate} from "react-dom/test-utils";
 
 export function AuthPage() {
-    let auth = useSelector((state: AppState) => state.auth)
+    let state = useSelector<AppState, State>(state => state.auth)
 
-    useEffect(() => {
-        // Trying to authenticate
-    }, [])
+    function logo(): React.ReactElement {
+        switch (state.step) {
+            case Step.INIT:
+                return <Logo className={Styles.Logo}/>
+
+            default:
+                return <LogoFull className={Styles.LogoFull}/>
+        }
+    }
 
     function window(): React.ReactElement {
-        switch (auth.step) {
+        switch (state.step) {
             case Step.SIGN_IN:
             case Step.SIGN_IN_PROCESS:
             case Step.SIGN_IN_FAILED:
@@ -34,8 +42,7 @@ export function AuthPage() {
 
     return (
         <Page>
-            <LogoFull className={Styles.Logo}/>
-
+            {logo()}
             {window()}
         </Page>
     )

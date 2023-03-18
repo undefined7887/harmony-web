@@ -10,17 +10,16 @@ export interface State {
     nonce?: string
     idtoken?: string
     validationError?: boolean
-    token?: string
 }
 
 export enum Step {
+    INIT,
     SIGN_IN,
     SIGN_IN_PROCESS,
     SIGN_IN_FAILED,
     SIGN_UP,
     SIGN_UP_PROCESS,
     SIGN_UP_FAILED,
-    SUCCESS
 }
 
 export interface SignInPayload {
@@ -36,14 +35,9 @@ export interface ErrorPayload {
     validationError: boolean
 }
 
-export interface SuccessPayload {
-    token: string
-}
+const initialState: State = {step: Step.INIT}
 
-
-const initialState: State = {step: Step.SIGN_IN}
-
-export const slice = createSlice({
+const slice = createSlice({
     name: "auth",
     initialState: initialState,
     reducers: {
@@ -77,11 +71,6 @@ export const slice = createSlice({
 
             state.validationError = action.payload.validationError
         },
-
-        success(state, action: PayloadAction<SuccessPayload>) {
-            state.step = Step.SUCCESS
-            state.token = action.payload.token
-        }
     }
 })
 

@@ -5,12 +5,13 @@ import Styles from "./SignUpWindow.module.scss";
 
 import {AppDispatch, AppState} from "src/feature/store";
 import {actions, State, Step, Type} from "src/feature/auth/slice";
+import {GoogleClaims, googleSignUp} from "src/feature/auth/feature";
 import {classes} from "src/render/utils";
+import {getJwtClaims} from "src/feature/utils";
 
 import {Spacer} from "src/render/Spacer";
 
 import GoogleIconSrc from "assets/images/GoogleIcon.svg"
-import {extractGoogleClaims, googleSignUp} from "src/feature/auth/feature";
 
 export function SignUpWindow() {
     let state = useSelector<AppState, State>(state => state.auth)
@@ -66,7 +67,7 @@ export function SignUpWindow() {
 
     function getPicture(): string {
         if (state.type == Type.GOOGLE) {
-            return extractGoogleClaims(state.idtoken).picture
+            return getJwtClaims<GoogleClaims>(state.idtoken).picture
         }
     }
 

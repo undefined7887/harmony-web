@@ -1,12 +1,11 @@
-import {base64toUTF8} from "@47ng/codec";
-
 import {makeUrlWithParams, randomHex, timeout} from "src/feature/utils";
 import {AppThunkAction} from "src/feature/store";
 
-import {ERR_BAD_REQUEST} from "src/feature/api";
+import {ERR_BAD_REQUEST, setToken} from "src/feature/api";
 import {methods} from "src/feature/auth/api";
 import {ERR_USER_NOT_FOUND} from "src/feature/user/api";
-import {actions, Type} from "src/feature/auth/slice";
+import {actions as authActions, Type} from "src/feature/auth/slice";
+import {actions as userActions} from "src/feature/user/slice";
 
 import googleCredentials from "secrets/google_credentials.json";
 
@@ -114,7 +113,7 @@ async function googleWellKnown(): Promise<WellKnown> {
 
 export function googleSignIn(): AppThunkAction {
     return async function (dispatch) {
-        dispatch(actions.signInProcess({
+        dispatch(authActions.signInProcess({
             type: Type.GOOGLE
         }))
 
@@ -122,7 +121,7 @@ export function googleSignIn(): AppThunkAction {
         try {
             authResult = await googleAuth()
         } catch (e) {
-            dispatch(actions.signInFailed())
+            dispatch(authActions.signInFailed())
         }
 
         try {
@@ -131,13 +130,17 @@ export function googleSignIn(): AppThunkAction {
                 idtoken: authResult.idtoken
             })
 
-            dispatch(actions.success({
-                token: signInResult.user_token
-            }))
+            // Saving token
+            setToken(signInResult.user_token)
+
+            // Authenticating globally
+            dispatch(userActions.auth({user: signInResult.user}))
+
+            console.log("google: signed in as", signInResult.user.nickname)
         } catch (err) {
             // If user not found, going to signUp
             if (err.code == ERR_USER_NOT_FOUND) {
-                dispatch(actions.signUp({
+                dispatch(authActions.signUp({
                     nonce: authResult.nonce,
                     idtoken: authResult.idtoken
                 }))
@@ -145,14 +148,14 @@ export function googleSignIn(): AppThunkAction {
                 return
             }
 
-            dispatch(actions.signInFailed())
+            dispatch(authActions.signInFailed())
         }
     }
 }
 
 export function googleSignUp(nonce: string, idToken: string, nickname: string): AppThunkAction {
     return async function (dispatch) {
-        dispatch(actions.signUpProcess())
+        dispatch(authActions.signUpProcess())
 
         await timeout(1000)
 
@@ -163,9 +166,13 @@ export function googleSignUp(nonce: string, idToken: string, nickname: string): 
                 nickname: nickname
             })
 
-            dispatch(actions.success({
-                token: signUpResult.user_token
-            }))
+            // Saving token
+            setToken(signUpResult.user_token)
+
+            // Authenticating globally
+            dispatch(userActions.auth({user: signUpResult.user}))
+
+            console.log("google: signed up as", signUpResult.user.nickname)
         } catch (err) {
             let validationError = false
 
@@ -173,11 +180,7 @@ export function googleSignUp(nonce: string, idToken: string, nickname: string): 
                 validationError = true
             }
 
-            dispatch(actions.signUpFailed({validationError}))
+            dispatch(authActions.signUpFailed({validationError}))
         }
     }
-}
-
-export function extractGoogleClaims(idtoken: string): GoogleClaims {
-    return JSON.parse(base64toUTF8(idtoken.split(".")[1]))
 }

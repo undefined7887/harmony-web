@@ -1,6 +1,13 @@
+@import "src/style/helper.scss";
 @import "./common.scss";
 
 .Logo {
+  @extend .PositionAbsoluteCenter;
+
+  height: 150px;
+}
+
+.LogoFull {
   position: absolute;
   top: 5%;
   left: 3%;

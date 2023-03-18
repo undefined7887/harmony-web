@@ -1,4 +1,5 @@
 import {makeRequest, METHOD_POST} from "src/feature/api";
+import {User} from "src/feature/user/api";
 
 export const ERR_WRONG_GOOGLE_TOKEN = 201
 export const ERR_EMAIL_NOT_VERIFIED = 202
@@ -15,7 +16,7 @@ export interface SignUpRequest {
 }
 
 export interface AuthResponse {
-    user_id: string
+    user: User
     user_token: string
 }
 

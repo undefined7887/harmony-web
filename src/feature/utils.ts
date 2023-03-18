@@ -1,4 +1,4 @@
-import {hex} from "@47ng/codec";
+import {base64toUTF8, hex} from "@47ng/codec";
 
 export function timeout(milliseconds: number): Promise<void> {
     return new Promise<void>(resolve => {
@@ -27,4 +27,8 @@ export function randomUint8Array(size: number): Uint8Array {
     crypto.getRandomValues(result)
 
     return result
+}
+
+export function getJwtClaims<T>(token: string): T {
+    return JSON.parse(base64toUTF8(token.split(".")[1]))
 }
