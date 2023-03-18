@@ -1,5 +1,4 @@
 import React from "react";
-
 import LogoFullSrc from "assets/images/LogoFull.svg"
 
 interface Props {

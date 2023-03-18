@@ -1,5 +1,4 @@
 import React from "react";
-
 import LogoSrc from "assets/images/Logo.svg"
 
 interface Props {

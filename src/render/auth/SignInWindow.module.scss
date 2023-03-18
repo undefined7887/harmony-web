@@ -1,4 +1,4 @@
-@import "./Common.module.scss";
+@import "./common.scss";
 
 .Button {
   @extend .FlexRow;
@@ -9,11 +9,12 @@
   height: 60px;
   padding: 0 20px 0 0;
   cursor: pointer;
+  user-select: none;
   border-radius: 30px;
   background-color: $col_back_elem;
 }
 
-.Google {
+.ButtonIconBox {
   @extend .FlexCenter;
 
   width: 72px;
@@ -22,12 +23,12 @@
   background: $col_back_elem_1;
 }
 
-.GoogleIcon {
+.ButtonIcon {
   width: 32px;
   height: 32px;
 }
 
-.GoogleText {
+.ButtonText {
   font-size: 16px;
   font-weight: 500;
   color: $col_text_white;

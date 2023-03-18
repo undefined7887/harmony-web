@@ -6,3 +6,7 @@ node_modules
 
 # Yarn
 yarn-error.log
+
+# Confi and Secrets
+secrets/*.json
+config/*.json

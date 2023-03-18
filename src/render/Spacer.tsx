@@ -1,7 +1,7 @@
 import React from "react";
-import Styles from "./Space.module.scss";
+import Styles from "./Spacer.module.scss";
 
-export function Space() {
+export function Spacer() {
     return (
         <div className={Styles.Space}/>
     )

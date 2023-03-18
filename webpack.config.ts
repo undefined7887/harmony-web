@@ -46,7 +46,9 @@ function mainConfig(env: Environment): webpack.Configuration {
                     extensions: [".js", ".ts", ".tsx", ".css", ".scss"],
                     alias: aliasHelper({
                         src: "src",
-                        assets: "assets"
+                        assets: "assets",
+                        secrets: "secrets",
+                        config: "config",
                     })
                 }
             }
@@ -112,8 +114,8 @@ function mainConfig(env: Environment): webpack.Configuration {
         function devServer() {
             return {
                 devServer: {
-                    host: "127.0.0.1",
-                    port: 8080,
+                    host: "localhost",
+                    port: 5000,
                     open: "/auth",
                     compress: true,
                     historyApiFallback: true

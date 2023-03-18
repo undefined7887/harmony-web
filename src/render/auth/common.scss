@@ -1,7 +1,8 @@
-@import "src/base.scss";
+@import "src/style/colors.scss";
+@import "src/style/helper.scss";
 
 .Window {
-  @extend .Center;
+  @extend .PositionAbsoluteCenter;
   @extend .FlexColumn;
 
   box-sizing: border-box;
@@ -12,16 +13,20 @@
   background-color: $col_back_surface;
 }
 
-.Title {
+.WindowTitle {
   font-size: 24px;
   font-weight: 600;
   margin-bottom: 10px;
   color: $col_text_white;
 }
 
-.Hint {
+.WindowHint {
   font-size: 18px;
   font-weight: 500;
   margin-bottom: 50px;
   color: $col_text_hint;
+}
+
+.WindowHintError {
+  color: $col_error;
 }

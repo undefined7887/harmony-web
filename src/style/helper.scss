@@ -1,0 +1,23 @@
+.PositionAbsoluteCenter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.FlexRow {
+  display: flex;
+  align-items: center;
+}
+
+.FlexColumn {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.FlexCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

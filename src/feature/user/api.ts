@@ -1,0 +1,2 @@
+export const ERR_USER_NOT_FOUND = 101
+export const ERR_USER_ALREADY_EXISTS = 102

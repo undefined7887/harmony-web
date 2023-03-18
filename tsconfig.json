@@ -20,6 +20,12 @@
       ],
       "assets/*": [
         "./assets/*"
+      ],
+      "secrets/*": [
+        "./secrets/*"
+      ],
+      "config/*": [
+        "./config/*"
       ]
     }
   }
