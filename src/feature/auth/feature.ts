@@ -56,7 +56,7 @@ async function googleAuth(): Promise<GoogleResult> {
 
     return new Promise<GoogleResult>((resolve, reject) => {
         let callback = (e: MessageEvent<GooglePageResponse>) => {
-            console.log("google: page response", e.data)
+            console.log("google: page response success", e.data.success)
 
             if (!e.data.success) {
                 console.warn("google: unsuccessful attempt")
