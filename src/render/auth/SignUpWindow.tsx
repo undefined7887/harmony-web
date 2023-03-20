@@ -1,57 +1,54 @@
 import React, {useRef} from "react";
 import {useDispatch, useSelector} from "react-redux";
+import {classes} from "src/render/utils";
+import {Spacer} from "src/render/Spacer";
+import {AppDispatch, AppState} from "src/internal/store";
+import {Auth, AuthActions, AuthState, AuthStep, AuthType, GoogleClaims} from "src/internal/services/auth";
+import {getJwtClaims} from "src/internal/utils/token";
 
 import Styles from "./SignUpWindow.module.scss";
 
-import {AppDispatch, AppState} from "src/feature/store";
-import {actions, State, Step, Type} from "src/feature/auth/slice";
-import {GoogleClaims, googleSignUp} from "src/feature/auth/feature";
-import {classes} from "src/render/utils";
-import {getJwtClaims} from "src/feature/utils";
-
-import {Spacer} from "src/render/Spacer";
-
-import GoogleIconSrc from "assets/images/GoogleIcon.svg"
+import googleIconSrc from "assets/images/googleIcon.svg"
 
 export function SignUpWindow() {
-    let state = useSelector<AppState, State>(state => state.auth)
+    let authState = useSelector<AppState, AuthState>(state => state.auth)
     let dispatch = useDispatch<AppDispatch>()
 
     let nicknameRef = useRef<HTMLInputElement>()
 
     function onBack() {
-        if (state.step != Step.SIGN_UP_PROCESS) {
-            dispatch(actions.signIn())
+        if (authState.step != AuthStep.SIGN_UP_PROCESS) {
+            dispatch(AuthActions.logout())
         }
     }
 
     function onContinue() {
-        if (state.step != Step.SIGN_UP_PROCESS) {
-            dispatch(googleSignUp(state.nonce, state.idtoken, nicknameRef.current.textContent))
+        if (authState.step != AuthStep.SIGN_UP_PROCESS) {
+            dispatch(Auth.googleSignUp(authState.nonce, authState.idtoken, nicknameRef.current.textContent))
         }
     }
 
-    function hintClasses(): string {
-        switch (state.step) {
-            case Step.SIGN_UP:
-            case Step.SIGN_UP_PROCESS:
+    function getHintClasses(): string {
+        switch (authState.step) {
+            case AuthStep.SIGN_UP:
+            case AuthStep.SIGN_UP_PROCESS:
                 return Styles.WindowHint
 
-            case Step.SIGN_UP_FAILED:
-                return classes(Styles.WindowHint, Styles.WindowHintError)
+            case AuthStep.SIGN_UP_FAILED:
+                return Styles.WindowHintError
         }
     }
 
-    function hintText(): string {
-        switch (state.step) {
-            case Step.SIGN_UP:
+    function getHintText(): string {
+        switch (authState.step) {
+            case AuthStep.SIGN_UP:
                 return "Imagine a catchy nickname"
 
-            case Step.SIGN_UP_PROCESS:
+            case AuthStep.SIGN_UP_PROCESS:
                 return "One second..."
 
-            case Step.SIGN_UP_FAILED:
-                if (state.validationError) {
+            case AuthStep.SIGN_UP_FAILED:
+                if (authState.validationError) {
                     return "Wrong nickname format"
                 }
 
@@ -59,27 +56,27 @@ export function SignUpWindow() {
         }
     }
 
-    function connectorIcon(): React.ReactElement {
-        if (state.type == Type.GOOGLE) {
-            return <img className={Styles.ConnectorIcon} src={GoogleIconSrc} alt=""/>
+    function renderConnectorIcon(): React.ReactElement {
+        if (authState.type == AuthType.GOOGLE) {
+            return <img className={Styles.ConnectorIcon} src={googleIconSrc} alt=""/>
         }
     }
 
-    function getPicture(): string {
-        if (state.type == Type.GOOGLE) {
-            return getJwtClaims<GoogleClaims>(state.idtoken).picture
+    function getPictureSrc(): string {
+        if (authState.type == AuthType.GOOGLE) {
+            return getJwtClaims<GoogleClaims>(authState.idtoken).picture
         }
     }
 
     return (
         <div className={Styles.Window}>
             <div className={Styles.WindowTitle}>Registration</div>
-            <div className={hintClasses()}>{hintText()}</div>
+            <div className={getHintClasses()}>{getHintText()}</div>
 
             <div className={Styles.Connector}>
-                <img className={Styles.ConnectorAvatar} src={getPicture()} alt=""/>
+                <img className={Styles.ConnectorAvatar} src={getPictureSrc()} alt=""/>
                 <div className={Styles.ConnectorLoader}/>
-                {connectorIcon()}
+                {renderConnectorIcon()}
 
             </div>
 

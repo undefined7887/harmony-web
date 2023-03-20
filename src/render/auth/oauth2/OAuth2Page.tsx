@@ -1,18 +1,18 @@
 import React, {useEffect} from "react";
 import {Page} from "src/render/Page";
-import {GooglePageResponse} from "src/feature/auth/feature";
+import {OAuth} from "src/internal/services/auth";
 
-export function GooglePage() {
+export function OAuth2Page() {
     useEffect(() => {
         let fragment = parseFragment()
 
         if (!fragment.state || !fragment.idToken) {
-            sendResult({success: false})
+            OAuth.sendWindowResponse({success: false})
 
             return
         }
 
-        sendResult({
+        OAuth.sendWindowResponse({
             success: true,
             state: fragment.state,
             idtoken: fragment.idToken
@@ -24,10 +24,6 @@ export function GooglePage() {
     return (
         <Page/>
     )
-}
-
-function sendResult(result: GooglePageResponse) {
-    window.opener.postMessage(result)
 }
 
 interface FragmentData {

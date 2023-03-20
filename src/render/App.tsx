@@ -1,48 +1,45 @@
 import React, {useEffect} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {Route, Routes, useNavigate} from "react-router-dom";
+import AppRoutes from "src/routes";
+import {AppDispatch, AppState} from "src/internal/store";
+import {Auth, AuthState, AuthStep} from "src/internal/services/auth";
 
 import "./App.scss";
-import AppRoutes from "src/routes";
 
 // Pages
 import {AuthPage} from "src/render/auth/AuthPage";
-import {GooglePage} from "src/render/google/GooglePage";
-
-import {AppDispatch, AppState} from "src/feature/store";
-import {Auth, State as UserState} from "src/feature/user/slice";
-import {getSelf} from "src/feature/user/feature";
-
+import {OAuth2Page} from "src/render/auth/oauth2/OAuth2Page";
+import {MainPage} from "src/render/main/MainPage";
 
 export function App() {
     let navigate = useNavigate();
 
-    let userState = useSelector<AppState, UserState>(state => state.user)
+    let authState = useSelector<AppState, AuthState>(state => state.auth)
     let dispatch = useDispatch<AppDispatch>()
 
-    useEffect(() => {
-        switch (userState.auth) {
-            // TODO: Move to main page
-            case Auth.UNKNOWN:
-                dispatch(getSelf())
-                return
+    if (authState.step == AuthStep.INIT) {
+        // Testing authentication if it's init state
+        dispatch(Auth.testAuth())
+    }
 
-            case Auth.UNAUTHORIZED:
+    useEffect(() => {
+        switch (authState.step) {
+            case AuthStep.SIGN_IN:
                 navigate(AppRoutes.auth)
                 return
 
-            case Auth.AUTHORIZED:
+            case AuthStep.OK:
                 navigate(AppRoutes.main)
                 return
         }
-    }, [userState.auth])
-
+    }, [authState.step])
 
     return (
         <Routes>
-            <Route index element={<h1 style={{color: "white"}}>Main page</h1>}/>
+            <Route path={AppRoutes.main} element={<MainPage/>}/>
             <Route path={AppRoutes.auth} element={<AuthPage/>}/>
-            <Route path={AppRoutes.google} element={<GooglePage/>}/>
+            <Route path={AppRoutes.oauth2} element={<OAuth2Page/>}/>
         </Routes>
     )
 }

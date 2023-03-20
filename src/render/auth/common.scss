@@ -28,5 +28,7 @@
 }
 
 .WindowHintError {
-  color: $col_error;
+  @extend .WindowHint;
+
+  color: $col_red;
 }

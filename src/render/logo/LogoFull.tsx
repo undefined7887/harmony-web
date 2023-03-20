@@ -1,5 +1,6 @@
 import React from "react";
-import LogoFullSrc from "assets/images/LogoFull.svg"
+
+import logoFullSrc from "assets/images/logoFull.svg"
 
 interface Props {
     className: string
@@ -7,6 +8,6 @@ interface Props {
 
 export function LogoFull({className}: Props) {
     return (
-        <img className={className} src={LogoFullSrc} alt=""/>
+        <img className={className} src={logoFullSrc} alt=""/>
     )
 }

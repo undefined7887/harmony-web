@@ -1,0 +1,39 @@
+@import "src/style/colors.scss";
+@import "src/style/helper.scss";
+
+.Container {
+  @extend .FlexRow;
+
+  padding: 15px;
+  border-radius: 30px;
+  background-color: $col_back_elem;
+}
+
+.Avatar {
+  width: 60px;
+  height: 60px;
+  margin-right: 15px;
+  vertical-align: bottom;
+  border-radius: 30px;
+}
+
+.Info {
+  font-size: 16px;
+  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+}
+
+.Nickname {
+  margin-bottom: 4px;
+  color: $col_text_white;
+}
+
+.NicknameTag {
+  margin-left: 2px;
+  color: $col_text_nickname_tag;
+}
+
+.Status {
+  color: $col_main;
+}

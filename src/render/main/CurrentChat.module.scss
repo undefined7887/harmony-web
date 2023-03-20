@@ -1,0 +1,12 @@
+@import "src/style/colors.scss";
+@import "src/style/helper.scss";
+
+.Container {
+  box-sizing: border-box;
+  width: 64%;
+  height: 95%;
+  margin-left: 20px;
+  border-radius: 30px;
+  background-color: $col_back_surface;
+}
+

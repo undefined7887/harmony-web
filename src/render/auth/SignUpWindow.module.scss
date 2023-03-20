@@ -32,16 +32,16 @@
 
 @keyframes loader {
   0% {
-    background-color: $col_back_elem_2;
-    box-shadow: 10px 0 $col_back_elem_2, -10px 0 #FFF;
+    background-color: $col_back_loader;
+    box-shadow: 10px 0 $col_back_loader, -10px 0 #FFF;
   }
   50% {
     background-color: #FFF;
-    box-shadow: 10px 0 $col_back_elem_2, -10px 0 $col_back_elem_2;
+    box-shadow: 10px 0 $col_back_loader, -10px 0 $col_back_loader;
   }
   100% {
-    background-color: $col_back_elem_2;
-    box-shadow: 10px 0 #FFF, -10px 0 $col_back_elem_2;
+    background-color: $col_back_loader;
+    box-shadow: 10px 0 #FFF, -10px 0 $col_back_loader;
   }
 }
 

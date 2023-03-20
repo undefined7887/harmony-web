@@ -1,40 +1,39 @@
 import React from "react";
 import {useDispatch, useSelector} from "react-redux";
+import {Spacer} from "src/render/Spacer";
+import {classes} from "src/render/utils";
+import {AppDispatch, AppState} from "src/internal/store";
+import {Auth, AuthState, AuthStep, AuthType} from "src/internal/services/auth";
+
 import Styles from "./SignInWindow.module.scss";
 
-import {Spacer} from "src/render/Spacer";
-
-import GoogleIconSrc from "assets/images/GoogleIcon.svg";
-import {classes} from "src/render/utils";
-import {AppDispatch, AppState} from "src/feature/store";
-import {State, Step, Type} from "src/feature/auth/slice";
-import {googleSignIn} from "src/feature/auth/feature";
+import googleIconSrc from "assets/images/googleIcon.svg";
 
 export function SignInWindow() {
     let dispatch = useDispatch<AppDispatch>()
-    let state = useSelector<AppState, State>(state => state.auth)
+    let authState = useSelector<AppState, AuthState>(state => state.auth)
 
-    function hintClasses(): string {
-        switch (state.step) {
-            case Step.SIGN_IN:
-            case Step.SIGN_IN_PROCESS:
+    function getHintClasses(): string {
+        switch (authState.step) {
+            case AuthStep.SIGN_IN:
+            case AuthStep.SIGN_IN_PROCESS:
                 return Styles.WindowHint
 
-            case Step.SIGN_IN_FAILED:
-                return classes(Styles.WindowHint, Styles.WindowHintError)
+            case AuthStep.SIGN_IN_FAILED:
+                return Styles.WindowHintError
         }
     }
 
-    function hintText(): string {
-        switch (state.step) {
-            case Step.SIGN_IN:
+    function getHintText(): string {
+        switch (authState.step) {
+            case AuthStep.SIGN_IN:
                 return "To continue, log into your account"
 
-            case Step.SIGN_IN_PROCESS:
+            case AuthStep.SIGN_IN_PROCESS:
                 return "Waiting for authentication..."
 
-            case Step.SIGN_IN_FAILED:
-                if (state.type == Type.GOOGLE) {
+            case AuthStep.SIGN_IN_FAILED:
+                if (authState.type == AuthType.GOOGLE) {
                     return "Google authentication failed"
                 }
         }
@@ -43,14 +42,14 @@ export function SignInWindow() {
     return (
         <div className={Styles.Window}>
             <div className={Styles.WindowTitle}>Sign in</div>
-            <div className={hintClasses()}>{hintText()}</div>
+            <div className={getHintClasses()}>{getHintText()}</div>
 
-            <Button icon={GoogleIconSrc}
+            <Button icon={googleIconSrc}
                     text="Continue with Google"
                     onClick={() => {
                         // Do not start sign in if already started
-                        if (state.step != Step.SIGN_IN_PROCESS) {
-                            dispatch(googleSignIn())
+                        if (authState.step != AuthStep.SIGN_IN_PROCESS) {
+                            dispatch(Auth.googleSignIn())
                         }
                     }}/>
 

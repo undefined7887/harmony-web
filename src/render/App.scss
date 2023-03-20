@@ -6,3 +6,9 @@ body {
   margin: 0;
   background-color: $col_back;
 }
+
+input {
+  box-sizing: border-box;
+  border: none;
+  outline: none;
+}
