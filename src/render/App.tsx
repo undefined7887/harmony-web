@@ -18,13 +18,12 @@ export function App() {
     let authState = useSelector<AppState, AuthState>(state => state.auth)
     let dispatch = useDispatch<AppDispatch>()
 
-    if (authState.step == AuthStep.INIT) {
-        // Testing authentication if it's init state
-        dispatch(Auth.testAuth())
-    }
-
     useEffect(() => {
         switch (authState.step) {
+            case AuthStep.INIT:
+                dispatch(Auth.testAuth())
+                break
+
             case AuthStep.SIGN_IN:
                 navigate(AppRoutes.auth)
                 return

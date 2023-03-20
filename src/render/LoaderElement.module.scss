@@ -1,0 +1,16 @@
+@import "src/style/colors.scss";
+
+.Loader {
+  animation: shine 1s infinite linear;
+  background: linear-gradient(90deg, $col_back_elem 0px, $col_back_elem_selected 20%, $col_back_elem 25%);
+  background-size: 200% 200%;
+}
+
+@keyframes shine {
+  0% {
+    background-position: 50%;
+  }
+  100% {
+    background-position: -150%;
+  }
+}

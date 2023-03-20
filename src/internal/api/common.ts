@@ -1,5 +1,4 @@
 import config from "config/config.json"
-import {timeout} from "src/internal/utils/common";
 
 export const RETRY_TIMEOUT = 2000
 

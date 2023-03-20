@@ -242,7 +242,7 @@ export class Auth {
         return async function (dispatch) {
             console.log("auth: testing authentication")
 
-            await timeout(1000);
+            await timeout(500);
 
             try {
                 let user = await UserApi.getSelf()

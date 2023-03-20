@@ -4,7 +4,7 @@ import {Chat as ChatComponent} from "src/render/main/Chat";
 import {AppDispatch, AppState} from "src/internal/store";
 import {Chat, ChatActions, ChatState} from "src/internal/services/chat";
 
-import Style from "src/render/main/ChatList.module.scss"
+import Styles from "src/render/main/ChatList.module.scss"
 import {Spacer} from "src/render/Spacer";
 import {Profile} from "src/render/main/Profile";
 
@@ -13,21 +13,25 @@ export function ChatList() {
     let dispatch = useDispatch<AppDispatch>()
 
     useEffect(() => {
-        if (!chatState.loaded) {
+        if (!chatState.chats) {
             dispatch(Chat.list())
         }
-    }, [chatState.loaded])
+    }, [chatState.chats])
 
     function renderList(): React.ReactElement {
+        if (!chatState.chats) {
+            return
+        }
+
         return (
-            <div className={Style.List}>
+            <div className={Styles.List}>
                 {
-                    Object.values(chatState.chats).map(chat => {
+                    chatState.chats.map(chat => {
                         return (
                             <ChatComponent key={chat.id}
                                            chat={chat}
-                                           active={chatState.currentChatId == chat.id}
-                                           onClick={() => dispatch(ChatActions.chooseChat({id: chat.id}))}/>
+                                           active={chatState.currentChat?.id == chat.id}
+                                           onClick={() => dispatch(ChatActions.setCurrent({chat}))}/>
                         )
                     })
                 }
@@ -36,9 +40,9 @@ export function ChatList() {
     }
 
     return (
-        <div className={Style.Container}>
-            <div className={Style.Title}>Chats</div>
-            <input className={Style.Search} placeholder="Search people, chats and etc..."/>
+        <div className={Styles.Container}>
+            <div className={Styles.Title}>Chats</div>
+            <input className={Styles.Search} placeholder="Search people, chats and etc..."/>
 
             {renderList()}
 

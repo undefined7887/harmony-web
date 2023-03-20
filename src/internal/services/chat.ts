@@ -5,38 +5,30 @@ import {timeout} from "src/internal/utils/common";
 import {RETRY_TIMEOUT} from "src/internal/api/common";
 
 export interface ChatState {
-    loaded: boolean
-    chats: { [id: string]: ChatModel }
-    currentChatId?: string
+    chats: ChatModel[]
+    currentChat?: ChatModel
 }
 
-export interface ChatListPayload {
+export interface ChatLoadingDonePayload {
     chats: ChatModel[]
 }
 
 export interface ChatChoosePayload {
-    id: string
+    chat: ChatModel
 }
 
 const chatSlice = createSlice({
     name: "chat",
-    initialState: {
-        loaded: false,
-        chats: {}
-    } as ChatState,
+    initialState: {} as ChatState,
     reducers: {
-        list(state, action: PayloadAction<ChatListPayload>) {
-            state.loaded = true
-
-            action.payload.chats.forEach(chat => {
-                state.chats[chat.id] = chat
-            })
+        list(state, action: PayloadAction<ChatLoadingDonePayload>) {
+            state.chats = action.payload.chats
         },
 
-        chooseChat(state, action: PayloadAction<ChatChoosePayload>) {
-            console.log("chat: current chat", action.payload.id)
+        setCurrent(state, action: PayloadAction<ChatChoosePayload>) {
+            console.log("chat: current chat", action.payload.chat)
 
-            state.currentChatId = action.payload.id
+            state.currentChat = action.payload.chat
         }
     }
 })

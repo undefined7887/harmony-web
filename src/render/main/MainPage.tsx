@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect} from "react";
 import {Page} from "src/render/Page";
 import {ChatList} from "src/render/main/ChatList";
 
@@ -9,8 +9,6 @@ import {AppState} from "src/internal/store";
 import {AuthState, AuthStep} from "src/internal/services/auth";
 import {Logo} from "src/render/logo/Logo";
 import Styles from "src/render/auth/AuthPage.module.scss";
-import {Spacer} from "src/render/Spacer";
-import {Profile} from "src/render/main/Profile";
 
 export function MainPage() {
     let authState = useSelector<AppState, AuthState>(state => state.auth)
