@@ -9,9 +9,11 @@ import {AppState} from "src/internal/store";
 import {AuthState, AuthStep} from "src/internal/services/auth";
 import {Logo} from "src/render/logo/Logo";
 import Styles from "src/render/auth/AuthPage.module.scss";
+import {ChatState} from "src/internal/services/chat";
 
 export function MainPage() {
     let authState = useSelector<AppState, AuthState>(state => state.auth)
+    let chatState = useSelector<AppState, ChatState>(state => state.chat)
 
     function render() {
         switch (authState.step) {
@@ -23,7 +25,7 @@ export function MainPage() {
                     <Page>
                         <div className={Style.Container}>
                             <ChatList/>
-                            <CurrentChat/>
+                            <CurrentChat chat={chatState.currentChat}/>
                         </div>
                     </Page>
                 )

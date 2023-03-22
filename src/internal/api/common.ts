@@ -68,3 +68,7 @@ function unknownError(message?: string): ApiError {
         message: message
     }
 }
+
+export function parseApiTime(time: string): Date {
+    return new Date(Date.parse(time))
+}

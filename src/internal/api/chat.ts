@@ -24,6 +24,7 @@ export interface MessageModel {
     peer_type: ChatType
     text: string
     edited: boolean
+    read_user_ids: string[]
     created_at: string
     updated_at: string
 }
@@ -32,8 +33,17 @@ export interface ListChatsResponse {
     items: ChatModel[]
 }
 
+
+export interface ListMessagesResponse {
+    items: MessageModel[]
+}
+
 export class ChatApi {
     static async listChats(): Promise<ListChatsResponse> {
         return await makeHttpRequest<unknown, ListChatsResponse>(HttpMethods.GET, "/api/v1/chat", {})
+    }
+
+    static async listMessages(peerId: string, peerType: string): Promise<ListMessagesResponse> {
+        return await makeHttpRequest<unknown, ListMessagesResponse>(HttpMethods.GET, `/api/v1/chat/${peerType}/${peerId}`, {})
     }
 }

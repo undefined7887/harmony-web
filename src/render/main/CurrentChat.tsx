@@ -1,28 +1,38 @@
-import React from "react";
+import React, {useEffect} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {AppDispatch, AppState} from "src/internal/store";
-import {ChatState} from "src/internal/services/chat";
+import {Chat, ChatState} from "src/internal/services/chat";
 import {splitUserNickname, UserState} from "src/internal/services/user";
-import {ChatType} from "src/internal/api/chat";
+import {ChatModel, ChatType} from "src/internal/api/chat";
 import {UserStatus} from "src/internal/api/user";
 
 import Styles from "src/render/main/CurrentChat.module.scss"
-import {Logo} from "src/render/logo/Logo";
+import {Message} from "src/render/main/Message";
 
-export function CurrentChat() {
+export interface Props {
+    chat: ChatModel
+}
+
+export function CurrentChat({chat}: Props) {
     let userState = useSelector<AppState, UserState>(state => state.user)
     let chatState = useSelector<AppState, ChatState>(state => state.chat)
     let dispatch = useDispatch<AppDispatch>()
 
+    useEffect(() => {
+        if (chat && !chatState.messages[chat.id]) {
+            dispatch(Chat.listMessages(chat.id, chat.type))
+        }
+    }, [chat, chatState.messages[chat?.id]])
+
     function renderPhoto() {
-        if (chatState.currentChat.type == ChatType.USER) {
-            return <img className={Styles.Photo} src={userState.users[chatState.currentChat.id].photo} alt=""/>
+        if (chat.type == ChatType.USER) {
+            return <img className={Styles.Photo} src={userState.users[chat.id].photo} alt=""/>
         }
     }
 
     function renderName() {
-        if (chatState.currentChat.type == ChatType.USER) {
-            let [nickname, nicknameTag] = splitUserNickname(userState.users[chatState.currentChat.id])
+        if (chat.type == ChatType.USER) {
+            let [nickname, nicknameTag] = splitUserNickname(userState.users[chat.id])
 
             return (
                 <div className={Styles.Name}>
@@ -34,8 +44,8 @@ export function CurrentChat() {
     }
 
     function renderStatus(): React.ReactElement {
-        if (chatState.currentChat.type == ChatType.USER) {
-            let user = userState.users[chatState.currentChat.id]
+        if (chat.type == ChatType.USER) {
+            let user = userState.users[chat.id]
 
             switch (user.status) {
                 case UserStatus.ONLINE:
@@ -50,9 +60,18 @@ export function CurrentChat() {
         }
     }
 
-    function render():
+    function renderMessages(): React.ReactElement | React.ReactElement[] {
+        if (!chat) {
+            return <></>
+        }
+
+        return chatState.messages[chat.id]
+            ?.map(message => <Message key={message.id} message={message}/>)
+    }
+
+    function renderChat():
         React.ReactElement {
-        if (!chatState.currentChat) {
+        if (!chat) {
             return <div className={Styles.SelectChat}>👈 Select chat from list</div>
         }
 
@@ -68,7 +87,7 @@ export function CurrentChat() {
                 </div>
 
                 <div className={Styles.Messages}>
-
+                    {renderMessages()}
                 </div>
 
                 <input className={Styles.Input} placeholder="Type here..."/>
@@ -78,7 +97,7 @@ export function CurrentChat() {
 
     return (
         <div className={Styles.Container}>
-            {render()}
+            {renderChat()}
         </div>
     )
 }

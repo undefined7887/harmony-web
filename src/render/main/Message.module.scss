@@ -1,0 +1,42 @@
+@import "src/style/colors.scss";
+@import "src/style/helper.scss";
+
+.Container {
+  @extend .FlexRow;
+}
+
+.Content {
+  font-size: 16px;
+  font-weight: 500;
+  width: max-content;
+  max-width: 40%;
+  margin-right: 20px;
+  padding: 15px 20px 5px 20px;
+  color: $col_text_white;
+  border-radius: 20px;
+  background-color: $col_back_elem;
+}
+
+.Time {
+  font-size: 16px;
+  font-weight: 400;
+  float: right;
+  margin: 10px 0 0 10px;
+  color: $col_text_message_time;
+}
+
+.Unread {
+  width: 12px;
+  height: 12px;
+  border-radius: 6px;
+  background-color: $col_main;
+}
+
+.Right {
+  flex-direction: row-reverse;
+
+  .Content {
+    margin-right: 0;
+    margin-left: 20px;
+  }
+}

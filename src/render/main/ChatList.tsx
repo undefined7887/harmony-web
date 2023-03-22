@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {Chat as ChatComponent} from "src/render/main/Chat";
 import {AppDispatch, AppState} from "src/internal/store";
@@ -14,7 +14,7 @@ export function ChatList() {
 
     useEffect(() => {
         if (!chatState.chats) {
-            dispatch(Chat.list())
+            dispatch(Chat.listChats())
         }
     }, [chatState.chats])
 
@@ -26,14 +26,13 @@ export function ChatList() {
         return (
             <div className={Styles.List}>
                 {
-                    chatState.chats.map(chat => {
-                        return (
+                    chatState.chats
+                        .map(chat =>
                             <ChatComponent key={chat.id}
                                            chat={chat}
                                            active={chatState.currentChat?.id == chat.id}
-                                           onClick={() => dispatch(ChatActions.setCurrent({chat}))}/>
+                                           onClick={() => dispatch(ChatActions.setCurrentChat({chat}))}/>
                         )
-                    })
                 }
             </div>
         )

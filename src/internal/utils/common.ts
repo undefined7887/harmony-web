@@ -4,3 +4,10 @@ export function timeout(milliseconds: number): Promise<void> {
     })
 }
 
+export function formatTime(num: number): string {
+    if (num < 10) {
+        return `0${num}`
+    }
+
+    return num.toString()
+}
