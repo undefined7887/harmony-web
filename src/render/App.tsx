@@ -11,12 +11,35 @@ import "./App.scss";
 import {AuthPage} from "src/render/auth/AuthPage";
 import {OAuth2Page} from "src/render/auth/oauth2/OAuth2Page";
 import {MainPage} from "src/render/main/MainPage";
+import {CentrifugoManager, CentrifugoState} from "src/internal/services/centrifugo";
+import {User} from "src/internal/services/user";
+import {UserStatus} from "src/internal/api/user";
 
 export function App() {
     let navigate = useNavigate();
 
+    let centrifugoState = useSelector<AppState, CentrifugoState>(state => state.centrifugo)
     let authState = useSelector<AppState, AuthState>(state => state.auth)
     let dispatch = useDispatch<AppDispatch>()
+
+    useEffect(() => {
+        window.addEventListener("focus", () => {
+            console.log("window: focus")
+            dispatch(User.updateSelfStatus(UserStatus.ONLINE))
+        })
+
+        window.addEventListener("blur", () => {
+            console.log("window: blur")
+            dispatch(User.updateSelfStatus(UserStatus.AWAY))
+        })
+
+        window.addEventListener("unload", () => {
+            console.log("window: will be closed")
+            dispatch(User.updateSelfStatus(UserStatus.OFFLINE))
+
+            alert("Sure?")
+        })
+    }, [])
 
     useEffect(() => {
         switch (authState.step) {
@@ -29,7 +52,7 @@ export function App() {
                 return
 
             case AuthStep.OK:
-                navigate(AppRoutes.main)
+                dispatch(CentrifugoManager.connect())
                 return
         }
     }, [authState.step])

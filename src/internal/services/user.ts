@@ -1,4 +1,4 @@
-import {UserApi, UserErrors, UserModel} from "src/internal/api/user";
+import {UserApi, UserErrors, UserModel, UserStatus} from "src/internal/api/user";
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {AppThunkAction} from "src/internal/store";
 import {timeout} from "src/internal/utils/common";
@@ -9,7 +9,7 @@ export interface UserState {
     users: { [id: string]: UserModel }
 }
 
-export interface UserGetPayload {
+export interface UserPayload {
     id: string
     user?: UserModel
 }
@@ -20,7 +20,13 @@ const userSlice = createSlice({
         users: {}
     } as UserState,
     reducers: {
-        get(state, action: PayloadAction<UserGetPayload>) {
+        reset(state) {
+            console.log("user: reset")
+
+            return {users: {}}
+        },
+
+        load(state, action: PayloadAction<UserPayload>) {
             state.users[action.payload.id] = action.payload.user
         },
     }
@@ -35,13 +41,13 @@ export class User {
         return async function (dispatch) {
             console.log("user: loading", id)
 
-            dispatch(UserActions.get({id, user: null}))
+            dispatch(UserActions.load({id, user: null}))
             await timeout(500)
 
             try {
                 let user = await UserApi.get(id)
 
-                dispatch(UserActions.get({id: user.id, user}))
+                dispatch(UserActions.load({id: user.id, user}))
 
                 console.log("user: loaded", id)
             } catch (err) {
@@ -54,6 +60,32 @@ export class User {
                 await timeout(RETRY_TIMEOUT)
                 dispatch(User.get(id))
             }
+        }
+    }
+
+    static updateSelfStatus(status: UserStatus): AppThunkAction {
+        return async function (dispatch, getState) {
+            console.log("user: updating self status to", status)
+
+            if (!getState().centrifugo.connected) {
+                console.log("user: not connected to centrifugo")
+                return
+            }
+
+            try {
+                await UserApi.updateSelfStatus(status)
+            } catch (err) {
+                await timeout(RETRY_TIMEOUT)
+                dispatch(User.updateSelfStatus(status))
+            }
+        }
+    }
+
+    static update(user: UserModel): AppThunkAction {
+        return async function (dispatch) {
+            console.log("user: updating", user.id)
+
+            dispatch(UserActions.load({id: user.id, user}))
         }
     }
 }

@@ -190,6 +190,12 @@ const AuthSlice = createSlice({
         step: AuthStep.INIT
     } as AuthState,
     reducers: {
+        reset(state) {
+            console.log("auth: reset")
+
+            return {step: AuthStep.INIT} as AuthState
+        },
+
         signIn(state) {
             state.step = AuthStep.SIGN_IN
         },

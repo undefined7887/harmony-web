@@ -22,6 +22,11 @@ export class HttpMethods {
     static PUT = "PUT"
 }
 
+export class HttpStatuses {
+    static OK = 200
+    static NoContent = 204
+}
+
 export async function makeHttpRequest<T, U>(method: string, path: string, data: T): Promise<U> {
     // await timeout(200)
 
@@ -37,7 +42,13 @@ export async function makeHttpRequest<T, U>(method: string, path: string, data: 
             }
 
             let result = await fetch(`${config.addresses.api}${path}`, init)
-            let resultData = await result.json()
+
+            let resultData = null
+
+            // Do not read json if NoContent status returned
+            if (result.status != HttpStatuses.NoContent) {
+                resultData = await result.json()
+            }
 
             if (result.status < 300) {
                 resolve(resultData as U)

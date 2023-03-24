@@ -7,6 +7,8 @@ import {Chat, ChatActions, ChatState} from "src/internal/services/chat";
 import Styles from "src/render/main/ChatList.module.scss"
 import {Spacer} from "src/render/Spacer";
 import {Profile} from "src/render/main/Profile";
+import {ChatType} from "src/internal/api/chat";
+import {CentrifugoManager} from "src/internal/services/centrifugo";
 
 export function ChatList() {
     let chatState = useSelector<AppState, ChatState>(state => state.chat)
@@ -15,7 +17,14 @@ export function ChatList() {
     useEffect(() => {
         if (!chatState.chats) {
             dispatch(Chat.listChats())
+            return
         }
+
+        chatState.chats.forEach(chat => {
+            if (chat.type == ChatType.USER) {
+                dispatch(CentrifugoManager.subscribeUser(chat.id))
+            }
+        })
     }, [chatState.chats])
 
     function renderList(): React.ReactElement {

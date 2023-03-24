@@ -18,6 +18,11 @@ export interface UserModel {
     status: UserStatus
     photo: string
     nickname: string
+    updated_at: string
+}
+
+export interface UpdateStatusRequest {
+    status: UserStatus
 }
 
 export class UserApi {
@@ -27,5 +32,9 @@ export class UserApi {
 
     static async get(id: string) {
         return await makeHttpRequest<unknown, UserModel>(HttpMethods.GET, `/api/v1/user/${id}`, {})
+    }
+
+    static async updateSelfStatus(status: UserStatus) {
+        return await makeHttpRequest<UpdateStatusRequest, void>(HttpMethods.PUT, `/api/v1/user/status`, {status})
     }
 }

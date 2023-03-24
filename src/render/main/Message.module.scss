@@ -3,6 +3,8 @@
 
 .Container {
   @extend .FlexRow;
+
+  margin-bottom: 5px;
 }
 
 .Content {

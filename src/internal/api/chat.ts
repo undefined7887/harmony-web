@@ -38,12 +38,30 @@ export interface ListMessagesResponse {
     items: MessageModel[]
 }
 
+export interface CreateMessageRequest {
+    text: string
+}
+
+export interface CreateMessageResponse {
+    message_id: string
+}
+
 export class ChatApi {
     static async listChats(): Promise<ListChatsResponse> {
         return await makeHttpRequest<unknown, ListChatsResponse>(HttpMethods.GET, "/api/v1/chat", {})
     }
 
+    static async updateChatRead(peerId: string, peerType: string): Promise<void> {
+        return await makeHttpRequest<unknown, void>(HttpMethods.PUT, `/api/v1/chat/${peerType}/${peerId}/read`, {})
+    }
+
     static async listMessages(peerId: string, peerType: string): Promise<ListMessagesResponse> {
         return await makeHttpRequest<unknown, ListMessagesResponse>(HttpMethods.GET, `/api/v1/chat/${peerType}/${peerId}`, {})
     }
+
+    static async createMessage(peerId: string, peerType: string, text: string): Promise<CreateMessageResponse> {
+        return await makeHttpRequest<CreateMessageRequest, CreateMessageResponse>
+        (HttpMethods.POST, `/api/v1/chat/${peerType}/${peerId}`, {text})
+    }
+
 }

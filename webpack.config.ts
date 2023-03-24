@@ -115,10 +115,10 @@ function mainConfig(env: Environment): webpack.Configuration {
             return {
                 devServer: {
                     host: "localhost",
-                    port: 5000,
+                    port: 8081,
                     open: "/auth",
                     compress: true,
-                    historyApiFallback: true
+                    historyApiFallback: true,
                 }
             }
         }
