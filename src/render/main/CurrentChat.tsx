@@ -60,7 +60,7 @@ export function CurrentChat({chat}: Props) {
 
     function createMessage() {
         if (chat.type == ChatType.USER) {
-            dispatch(Chat.createMessage(chat.id, chat.type, messageText))
+            dispatch(Chat.createMessage(chat.id, chat.type, messageText.trim()))
         }
 
         setMessageText("")
