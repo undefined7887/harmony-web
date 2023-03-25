@@ -29,28 +29,32 @@ export function MainPage() {
                 dispatch(User.updateSelfStatus(UserStatus.AWAY))
             }
 
-            setWindowLHandlers()
+            setWindowHandlers()
         }
     }, [centrifugoState.connected])
 
-    function setWindowLHandlers() {
-        window.addEventListener("focus", () => {
+    function setWindowHandlers() {
+        let focusCallback = () => {
             if (authState.userId) {
                 dispatch(User.updateSelfStatus(UserStatus.ONLINE))
             }
-        })
+        }
 
-        window.addEventListener("blur", () => {
+        let blurCallback = () => {
             if (authState.userId) {
                 dispatch(User.updateSelfStatus(UserStatus.AWAY))
             }
-        })
+        }
 
-        window.addEventListener("unload", () => {
+        let unloadCallback = () => {
             if (authState.userId) {
                 dispatch(User.updateSelfStatus(UserStatus.OFFLINE))
             }
-        })
+        }
+
+        window.onfocus = focusCallback
+        window.onblur = blurCallback
+        window.onunload = unloadCallback
     }
 
     function render() {
