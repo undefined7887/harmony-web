@@ -4,6 +4,7 @@ import {AppThunkAction} from "src/internal/store";
 import {timeout} from "src/internal/utils/common";
 import {RETRY_TIMEOUT} from "src/internal/api/common";
 import {useEffect} from "react";
+import {CentrifugoActions, CentrifugoManager} from "src/internal/services/centrifugo";
 
 export interface UserState {
     users: { [id: string]: UserModel }
@@ -47,8 +48,14 @@ export const userReducer = userSlice.reducer
 
 export class User {
     static get(id: string): AppThunkAction {
-        return async function (dispatch) {
+        return async function (dispatch, getState) {
             console.log("user: loading", id)
+
+            let userState = getState().user
+
+            if (!userState.users.hasOwnProperty(id)) {
+                dispatch(CentrifugoManager.subscribeUser(id))
+            }
 
             dispatch(UserActions.load({id, user: null}))
             await timeout(500)
@@ -100,14 +107,20 @@ export class User {
     }
 
     static search(nickname: string): AppThunkAction {
-        return async function (dispatch) {
+        return async function (dispatch, getState) {
             console.log("user: searching", nickname)
+
+            let userState = getState().user
 
             try {
                 let user = await UserApi.search(nickname)
 
-                dispatch(UserActions.load({id: user.id, user}))
                 dispatch(UserActions.search({userId: user.id}))
+
+                if (!userState.users.hasOwnProperty(user.id)) {
+                    dispatch(UserActions.load({id: user.id, user}))
+                    dispatch(CentrifugoManager.subscribeUser(user.id))
+                }
             } catch (err) {
                 if (err.code == UserErrors.ERR_USER_NOT_FOUND) {
                     dispatch(UserActions.search({userId: null}))

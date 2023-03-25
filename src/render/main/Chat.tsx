@@ -33,7 +33,6 @@ export function Chat({chat, active, onClick}: Props) {
     useEffect(() => {
         if (!userExists) {
             dispatch(User.get(chat.id))
-            dispatch(CentrifugoManager.subscribeUser(chat.id))
         }
     }, [userExists])
 

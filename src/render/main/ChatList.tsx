@@ -9,6 +9,7 @@ import {Spacer} from "src/render/Spacer";
 import {Profile} from "src/render/main/Profile";
 import {splitUserNickname, User, UserActions, UserState, validateNickname} from "src/internal/services/user";
 import {ChatType} from "src/internal/api/chat";
+import {CentrifugoManager} from "src/internal/services/centrifugo";
 
 export function ChatList() {
     let userState = useSelector<AppState, UserState>(state => state.user)

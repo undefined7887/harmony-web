@@ -24,25 +24,25 @@ export function App() {
 
     useEffect(() => {
         window.addEventListener("focus", () => {
-            console.log("window: focus")
             dispatch(User.updateSelfStatus(UserStatus.ONLINE))
         })
 
         window.addEventListener("blur", () => {
-            console.log("window: blur")
             dispatch(User.updateSelfStatus(UserStatus.AWAY))
         })
 
         window.addEventListener("unload", () => {
-            console.log("window: will be closed")
             dispatch(User.updateSelfStatus(UserStatus.OFFLINE))
         })
     }, [])
 
     useEffect(() => {
-        if (centrifugoState.connected && !document.hasFocus()) {
-            console.log("window: blur")
-            dispatch(User.updateSelfStatus(UserStatus.AWAY))
+        if (centrifugoState.connected) {
+            if (document.hasFocus()) {
+                dispatch(User.updateSelfStatus(UserStatus.ONLINE))
+            } else {
+                dispatch(User.updateSelfStatus(UserStatus.AWAY))
+            }
         }
     }, [centrifugoState.connected])
 
