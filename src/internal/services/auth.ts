@@ -8,6 +8,7 @@ import {AuthApi} from "src/internal/api/auth";
 import {UserModel, UserApi, UserErrors} from "src/internal/api/user";
 import {CommonErrors, RETRY_TIMEOUT} from "src/internal/api/common";
 import {timeout} from "src/internal/utils/common";
+import {UserActions} from "src/internal/services/user";
 
 interface OAuthWindowResponse {
     success: boolean
@@ -160,7 +161,7 @@ export enum AuthStep {
 
 export interface AuthState {
     step: AuthStep
-    user?: UserModel
+    userId?: string
     type?: AuthType
     nonce?: string
     idtoken?: string
@@ -181,7 +182,7 @@ export interface AuthErrorPayload {
 }
 
 export interface AuthPayload {
-    user: UserModel
+    userId: string
 }
 
 const AuthSlice = createSlice({
@@ -230,7 +231,7 @@ const AuthSlice = createSlice({
         auth(state, action: PayloadAction<AuthPayload>) {
             state.step = AuthStep.OK
 
-            state.user = action.payload.user
+            state.userId = action.payload.userId
         },
 
         logout(state) {
@@ -253,7 +254,8 @@ export class Auth {
             try {
                 let user = await UserApi.getSelf()
 
-                dispatch(AuthActions.auth({user}))
+                dispatch(UserActions.load({id: user.id, user}))
+                dispatch(AuthActions.auth({userId: user.id}))
 
                 console.log("auth: signed in as", user.nickname)
             } catch (err) {
@@ -292,7 +294,8 @@ export class Auth {
                 setJwtCookie(signInResult.user_token)
 
                 // Authenticating globally
-                dispatch(AuthActions.auth({user: signInResult.user}))
+                dispatch(UserActions.load({id: signInResult.user.id, user: signInResult.user}))
+                dispatch(AuthActions.auth({userId: signInResult.user.id}))
 
                 console.log("auth: signed in as", signInResult.user.nickname)
             } catch (err) {
@@ -326,7 +329,8 @@ export class Auth {
                 setJwtCookie(signUpResult.user_token)
 
                 // Authenticating globally
-                dispatch(AuthActions.auth({user: signUpResult.user}))
+                dispatch(UserActions.load({id: signUpResult.user.id, user: signUpResult.user}))
+                dispatch(AuthActions.auth({userId: signUpResult.user.id}))
 
                 console.log("auth: signed up as", signUpResult.user.nickname)
             } catch (err) {

@@ -33,7 +33,6 @@ export interface ListChatsResponse {
     items: ChatModel[]
 }
 
-
 export interface ListMessagesResponse {
     items: MessageModel[]
 }
@@ -46,6 +45,10 @@ export interface CreateMessageResponse {
     message_id: string
 }
 
+export interface UpdateChatTypingRequest {
+    typing: boolean
+}
+
 export class ChatApi {
     static async listChats(): Promise<ListChatsResponse> {
         return await makeHttpRequest<unknown, ListChatsResponse>(HttpMethods.GET, "/api/v1/chat", {})
@@ -53,6 +56,10 @@ export class ChatApi {
 
     static async updateChatRead(peerId: string, peerType: string): Promise<void> {
         return await makeHttpRequest<unknown, void>(HttpMethods.PUT, `/api/v1/chat/${peerType}/${peerId}/read`, {})
+    }
+
+    static async updateChatTyping(peerId: string, peerType: string, typing: boolean): Promise<void> {
+        return await makeHttpRequest<UpdateChatTypingRequest, void>(HttpMethods.PUT, `/api/v1/chat/${peerType}/${peerId}/typing`, {typing})
     }
 
     static async listMessages(peerId: string, peerType: string): Promise<ListMessagesResponse> {

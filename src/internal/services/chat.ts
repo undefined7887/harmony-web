@@ -3,10 +3,13 @@ import {AppThunkAction} from "src/internal/store";
 import {ChatApi, ChatErrors, ChatModel, ChatType, MessageModel} from "src/internal/api/chat";
 import {timeout} from "src/internal/utils/common";
 import {RETRY_TIMEOUT} from "src/internal/api/common";
-import {AuthState, AuthStep} from "src/internal/services/auth";
+
+export const TYPING_TIMEOUT = 2_000
+export const TYPING_CHECK_TIMEOUT = 5_000
 
 export interface ChatState {
     chats: ChatModel[]
+    typing: { [id: string]: { userId: string, lastUpdated: number }[] }
     currentChat?: ChatModel
     messages: { [id: string]: MessageModel[] }
 }
@@ -39,16 +42,23 @@ export interface ChatUpdateReadPayload {
     userId: string
 }
 
+export interface ChatUpdateTypingPayload {
+    chatId: string
+    userId: string
+    typing: boolean
+}
+
 const chatSlice = createSlice({
     name: "chat",
     initialState: {
+        typing: {},
         messages: {}
     } as ChatState,
     reducers: {
         reset(state) {
             console.log("chat: reset")
 
-            return {messages: {}} as ChatState
+            return {typing: {}, messages: {}} as ChatState
         },
 
         listChats(state, action: PayloadAction<ChatListPayload>) {
@@ -91,11 +101,52 @@ const chatSlice = createSlice({
             chat.unread_count = 0
         },
 
+        updateChatTyping(state, action: PayloadAction<ChatUpdateTypingPayload>) {
+            console.log("chat: updating chat typing")
+
+            if (!state.typing[action.payload.chatId]) {
+                state.typing[action.payload.chatId] = []
+            }
+
+            let now = new Date().getTime()
+
+            if (action.payload.typing) {
+                state.typing[action.payload.chatId].push({
+                    userId: action.payload.userId,
+                    lastUpdated: now
+                })
+            } else {
+                let idx = state.typing[action.payload.chatId].findIndex(typing => {
+                    return typing.userId == action.payload.userId
+                })
+
+                if (idx >= 0) {
+                    state.typing[action.payload.chatId].splice(idx, 1)
+                }
+            }
+        },
+
+        updateChatTypingCheck(state, action: PayloadAction<ChatUpdateTypingPayload>) {
+            if (!state.typing[action.payload.chatId]) {
+                return
+            }
+
+            let idx = state.typing[action.payload.chatId].findIndex(typing => {
+                return typing.userId == action.payload.userId
+            })
+
+            let now = new Date().getTime()
+
+            if (idx >= 0 && Math.abs(now - state.typing[action.payload.chatId][idx].lastUpdated) > TYPING_TIMEOUT) {
+                state.typing[action.payload.chatId].splice(idx, 1)
+            }
+        },
+
         setCurrentChat(state, action: PayloadAction<ChatChoosePayload>) {
             console.log("chat: current chat", action.payload.chat)
 
             state.currentChat = action.payload.chat
-        }
+        },
     }
 })
 
@@ -157,40 +208,6 @@ export class Chat {
         }
     }
 
-    static newMessage(message: MessageModel): AppThunkAction {
-        return async function (dispatch, getState) {
-            let authState = getState().auth
-            let chatState = getState().chat
-
-            switch (message.peer_type) {
-                case ChatType.USER:
-                    let chatId = message.user_id == authState.user.id ? message.peer_id : message.user_id
-
-                    if (chatState.chats.findIndex(chat => chat.id == chatId) < 0) {
-                        // Chat not found, creating new chat
-                        dispatch(ChatActions.newChat({
-                            chat: {
-                                id: chatId,
-                                type: ChatType.USER,
-                                message: message,
-                                unread_count: 1
-                            }
-                        }))
-                    }
-
-                    dispatch(ChatActions.newMessage({
-                        chatId,
-                        message,
-
-                        // Updating unread count in case message isn't sent by current user
-                        update_unread_count: message.user_id != authState.user.id
-                    }))
-
-                    break
-            }
-        }
-    }
-
     static updateChatRead(peerId: string, peerType: string): AppThunkAction {
         return async function (dispatch) {
             console.log("chat: updating read")
@@ -208,15 +225,79 @@ export class Chat {
         }
     }
 
+    static updateChatTyping(peerId: string, peerType: string, typing: boolean): AppThunkAction {
+        return async function (dispatch) {
+            console.log("chat: updating typing")
+
+            try {
+                await ChatApi.updateChatTyping(peerId, peerType, typing)
+            } catch (err) {
+                await timeout(RETRY_TIMEOUT)
+                dispatch(Chat.updateChatTyping(peerId, peerType, typing))
+            }
+        }
+    }
+
+    static newMessage(message: MessageModel): AppThunkAction {
+        return async function (dispatch, getState) {
+            let authState = getState().auth
+            let chatState = getState().chat
+
+            switch (message.peer_type) {
+                case ChatType.USER:
+                    let chatId = message.user_id == authState.userId ? message.peer_id : message.user_id
+
+                    if (chatState.chats.findIndex(chat => chat.id == chatId) < 0) {
+                        // Chat not found, creating new chat
+                        dispatch(ChatActions.newChat({
+                            chat: {
+                                id: chatId,
+                                type: ChatType.USER,
+                                message: message,
+                                unread_count: 0
+                            }
+                        }))
+                    }
+
+                    dispatch(ChatActions.newMessage({
+                        chatId,
+                        message,
+
+                        // Updating unread count in case message isn't sent by current user
+                        update_unread_count: message.user_id != authState.userId
+                    }))
+
+                    if (message.user_id != authState.userId) {
+                        dispatch(ChatActions.updateChatTyping({chatId: chatId, userId: message.user_id, typing: false}))
+                    }
+
+                    break
+            }
+        }
+    }
+
     static chatReadUpdates(peerId: string, userId: string): AppThunkAction {
         return async function (dispatch, getState) {
             let authState = getState().auth
 
-            let chatId = userId == authState.user.id ? peerId : userId
+            let chatId = userId == authState.userId ? peerId : userId
             console.log("chat: updating read for", chatId)
 
             // peerId will be always current user
             dispatch(ChatActions.updateChatRead({chatId, userId}))
+        }
+    }
+
+    static chatTypingUpdates(peerId: string, userId: string, typing: boolean): AppThunkAction {
+        return async function (dispatch) {
+            console.log("chat: updating typing for", peerId, "set", typing)
+
+            // peerId will be always current user
+            dispatch(ChatActions.updateChatTyping({chatId: userId, userId, typing: typing}))
+
+            setTimeout(() => {
+                dispatch(ChatActions.updateChatTypingCheck({chatId: userId, userId, typing: false}))
+            }, TYPING_CHECK_TIMEOUT)
         }
     }
 }

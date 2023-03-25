@@ -65,10 +65,13 @@ export class CentrifugoManager {
             })
 
             CentrifugoManager
-                .subscribe(`chat:message/new#${authState.user.id}`, CentrifugoManager.onChatNewMessage(dispatch))
+                .subscribe(`chat:message/new#${authState.userId}`, CentrifugoManager.onChatNewMessage(dispatch))
 
             CentrifugoManager
-                .subscribe(`chat:read/updates#${authState.user.id}`, CentrifugoManager.onChatReadUpdates(dispatch))
+                .subscribe(`chat:read/updates#${authState.userId}`, CentrifugoManager.onChatReadUpdates(dispatch))
+
+            CentrifugoManager
+                .subscribe(`chat:typing/updates#${authState.userId}`, CentrifugoManager.onChatTypingUpdates(dispatch))
 
             CentrifugoManager.connection.connect()
         }
@@ -76,6 +79,8 @@ export class CentrifugoManager {
 
     static subscribeUser(id: string): AppThunkAction {
         return async function (dispatch) {
+            console.log("user: subscribing to", id)
+
             CentrifugoManager
                 .subscribe(`user:${id}`, CentrifugoManager.onUserUpdate(dispatch))
         }
@@ -96,6 +101,12 @@ export class CentrifugoManager {
         subscription.subscribe()
     }
 
+    private static onUserUpdate(dispatch): (PublicationContext) => void {
+        return async function (ctx: PublicationContext) {
+            dispatch(User.update(ctx.data as UserModel))
+        }
+    }
+
     private static onChatNewMessage(dispatch): (PublicationContext) => void {
         return async function (ctx: PublicationContext) {
             dispatch(Chat.newMessage(ctx.data as MessageModel))
@@ -108,9 +119,9 @@ export class CentrifugoManager {
         }
     }
 
-    private static onUserUpdate(dispatch): (PublicationContext) => void {
+    private static onChatTypingUpdates(dispatch): (PublicationContext) => void {
         return async function (ctx: PublicationContext) {
-            dispatch(User.update(ctx.data as UserModel))
+            dispatch(Chat.chatTypingUpdates(ctx.data.peer_id, ctx.data.user_id, ctx.data.typing))
         }
     }
 }

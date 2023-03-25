@@ -19,7 +19,7 @@ export function Message({message}: Props) {
     let createdAt = parseApiTime(message.created_at)
 
     function messageClasses(): string {
-        if (message.user_id == authState.user.id) {
+        if (message.user_id == authState.userId) {
             return classes(Style.Container, Style.Right)
         }
 
@@ -27,7 +27,7 @@ export function Message({message}: Props) {
     }
 
     function renderUnread(): React.ReactElement {
-        if (message.user_id == authState.user.id && message.read_user_ids.length == 0) {
+        if (message.user_id == authState.userId && message.read_user_ids.length == 0) {
             return <div className={Style.Unread}/>
         }
     }

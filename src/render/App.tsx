@@ -36,10 +36,15 @@ export function App() {
         window.addEventListener("unload", () => {
             console.log("window: will be closed")
             dispatch(User.updateSelfStatus(UserStatus.OFFLINE))
-
-            alert("Sure?")
         })
     }, [])
+
+    useEffect(() => {
+        if (centrifugoState.connected && !document.hasFocus()) {
+            console.log("window: blur")
+            dispatch(User.updateSelfStatus(UserStatus.AWAY))
+        }
+    }, [centrifugoState.connected])
 
     useEffect(() => {
         switch (authState.step) {

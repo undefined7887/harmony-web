@@ -10,6 +10,7 @@ import {splitUserNickname, User, UserState} from "src/internal/services/user";
 
 import Styles from "./Chat.module.scss"
 import {LoaderElement} from "src/render/LoaderElement";
+import {CentrifugoManager} from "src/internal/services/centrifugo";
 
 interface Props {
     chat: ChatModel
@@ -32,6 +33,7 @@ export function Chat({chat, active, onClick}: Props) {
     useEffect(() => {
         if (!userExists) {
             dispatch(User.get(chat.id))
+            dispatch(CentrifugoManager.subscribeUser(chat.id))
         }
     }, [userExists])
 
@@ -86,7 +88,7 @@ export function Chat({chat, active, onClick}: Props) {
 
                     <div className={Styles.Message}>
                         {
-                            chat.message.user_id == authState.user.id ? `You: ${chat.message.text}` : chat.message.text
+                            chat.message.user_id == authState.userId ? `You: ${chat.message.text}` : chat.message.text
                         }
                     </div>
                 </div>

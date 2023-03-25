@@ -26,15 +26,19 @@ export interface UpdateStatusRequest {
 }
 
 export class UserApi {
-    static async getSelf() {
+    static async getSelf(): Promise<UserModel> {
         return await makeHttpRequest<unknown, UserModel>(HttpMethods.GET, "/api/v1/user/self", {})
     }
 
-    static async get(id: string) {
+    static async get(id: string): Promise<UserModel> {
         return await makeHttpRequest<unknown, UserModel>(HttpMethods.GET, `/api/v1/user/${id}`, {})
     }
 
     static async updateSelfStatus(status: UserStatus) {
         return await makeHttpRequest<UpdateStatusRequest, void>(HttpMethods.PUT, `/api/v1/user/status`, {status})
+    }
+
+    static async search(nickname: string): Promise<UserModel> {
+        return await makeHttpRequest<unknown, UserModel>(HttpMethods.GET, `/api/v1/user/search?nickname=${encodeURIComponent(nickname)}`, {})
     }
 }

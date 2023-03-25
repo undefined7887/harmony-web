@@ -7,11 +7,16 @@ import {useEffect} from "react";
 
 export interface UserState {
     users: { [id: string]: UserModel }
+    searchUser?: string
 }
 
 export interface UserPayload {
     id: string
     user?: UserModel
+}
+
+export interface UserSearchPayload {
+    userId: string
 }
 
 const userSlice = createSlice({
@@ -29,6 +34,10 @@ const userSlice = createSlice({
         load(state, action: PayloadAction<UserPayload>) {
             state.users[action.payload.id] = action.payload.user
         },
+
+        search(state, action: PayloadAction<UserSearchPayload>) {
+            state.searchUser = action.payload.userId
+        }
     }
 })
 
@@ -67,13 +76,14 @@ export class User {
         return async function (dispatch, getState) {
             console.log("user: updating self status to", status)
 
-            if (!getState().centrifugo.connected) {
-                console.log("user: not connected to centrifugo")
-                return
-            }
+            let authState = getState().auth
+            let userState = getState().user
+
+            let user = userState.users[authState.userId]
 
             try {
                 await UserApi.updateSelfStatus(status)
+                dispatch(UserActions.load({id: user.id, user: {...user, status}}))
             } catch (err) {
                 await timeout(RETRY_TIMEOUT)
                 dispatch(User.updateSelfStatus(status))
@@ -88,10 +98,37 @@ export class User {
             dispatch(UserActions.load({id: user.id, user}))
         }
     }
+
+    static search(nickname: string): AppThunkAction {
+        return async function (dispatch) {
+            console.log("user: searching", nickname)
+
+            try {
+                let user = await UserApi.search(nickname)
+
+                dispatch(UserActions.load({id: user.id, user}))
+                dispatch(UserActions.search({userId: user.id}))
+            } catch (err) {
+                if (err.code == UserErrors.ERR_USER_NOT_FOUND) {
+                    dispatch(UserActions.search({userId: null}))
+                    return
+                }
+
+                await timeout(RETRY_TIMEOUT);
+                dispatch(User.search(nickname))
+            }
+        }
+    }
 }
 
 export function splitUserNickname(user: UserModel): string[] {
     let [nickname, nicknameTag] = user.nickname.split("#")
 
     return [nickname, `#${nicknameTag}`]
+}
+
+export function validateNickname(nickname: string): boolean {
+    let regex = new RegExp("^[A-z0-9-_.]{4,30}#[0-9]{4}$")
+
+    return regex.test(nickname)
 }
