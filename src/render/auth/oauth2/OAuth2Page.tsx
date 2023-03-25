@@ -1,18 +1,19 @@
 import React, {useEffect} from "react";
 import {Page} from "src/render/Page";
-import {OAuth} from "src/internal/services/auth";
+import {OAUTH2_MESSAGE_TYPE, OAuth} from "src/internal/services/auth";
 
 export function OAuth2Page() {
     useEffect(() => {
         let fragment = parseFragment()
 
         if (!fragment.state || !fragment.idToken) {
-            OAuth.sendWindowResponse({success: false})
+            OAuth.sendWindowResponse({type: OAUTH2_MESSAGE_TYPE, success: false})
 
             return
         }
 
         OAuth.sendWindowResponse({
+            type: OAUTH2_MESSAGE_TYPE,
             success: true,
             state: fragment.state,
             idtoken: fragment.idToken

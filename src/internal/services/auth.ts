@@ -10,7 +10,10 @@ import {API_TIMEOUT, CommonErrors, RETRY_TIMEOUT} from "src/internal/api/common"
 import {timeout} from "src/internal/utils/common";
 import {UserActions} from "src/internal/services/user";
 
+export const OAUTH2_MESSAGE_TYPE = "harmony-oauth2"
+
 interface OAuthWindowResponse {
+    type: string
     success: boolean
     state?: string
     idtoken?: string
@@ -26,7 +29,7 @@ export class OAuth {
     static STATE_SIZE = 16
     static RESPONSE_TYPE = "id_token"
 
-    static WINDOW_TIMEOUT = 500
+    static WINDOW_TIMEOUT = 1000
     static WINDOW_TITLE = "Sign in"
     static WINDOW_SETTINGS = "scrollbars=no,resizable=no,left=100,top=100,width=500,height=700"
 
@@ -41,25 +44,31 @@ export class OAuth {
                 return
             }
 
-            let callback = (response: OAuthWindowResponse) => {
+            let callback = (response: OAuthWindowResponse): boolean => {
                 console.log("oauth2: window response", response.success ? "ok" : "err")
+
+                if (response.type != OAUTH2_MESSAGE_TYPE) {
+                    return false
+                }
 
                 if (!response.success) {
                     reject()
-                    return
+                    return true
                 }
 
                 if (response.state !== state) {
                     console.warn("oauth2: state malformed")
 
                     reject()
-                    return
+                    return true
                 }
 
                 resolve({
                     nonce: nonce,
                     idtoken: response.idtoken,
                 })
+
+                return true
             }
 
             OAuth.openWindow(url, callback)
@@ -70,14 +79,14 @@ export class OAuth {
         window.opener.postMessage(response)
     }
 
-    private static openWindow(url: string, callback: (OAuthWindowResponse) => void) {
+    private static openWindow(url: string, callback: (OAuthWindowResponse) => boolean) {
         console.log("oauth2: opening window", url.toString())
 
         let messageCallback = (e: MessageEvent<OAuthWindowResponse>) => {
-            callback(e.data)
-
-            // Listener no more required after sending callback
-            window.removeEventListener("message", messageCallback)
+            if (callback(e.data)) {
+                // Listener no more required after sending callback
+                window.removeEventListener("message", messageCallback)
+            }
         }
 
         window.addEventListener("message", messageCallback)
@@ -91,6 +100,7 @@ export class OAuth {
                 if (OAuth.window.closed) {
                     clearInterval(closeTimer)
 
+                    console.log("oauth2: closing window due to timeout")
                     callback({success: false})
 
                     // Listener no more required after sending callback
