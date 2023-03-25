@@ -101,7 +101,7 @@ export class OAuth {
                     clearInterval(closeTimer)
 
                     console.log("oauth2: closing window due to timeout")
-                    callback({success: false})
+                    callback({type: OAUTH2_MESSAGE_TYPE, success: false})
 
                     // Listener no more required after sending callback
                     window.removeEventListener("message", messageCallback)
