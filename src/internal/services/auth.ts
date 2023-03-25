@@ -6,7 +6,7 @@ import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {AppThunkAction} from "src/internal/store";
 import {AuthApi} from "src/internal/api/auth";
 import {UserModel, UserApi, UserErrors} from "src/internal/api/user";
-import {CommonErrors, RETRY_TIMEOUT} from "src/internal/api/common";
+import {API_TIMEOUT, CommonErrors, RETRY_TIMEOUT} from "src/internal/api/common";
 import {timeout} from "src/internal/utils/common";
 import {UserActions} from "src/internal/services/user";
 
@@ -249,9 +249,8 @@ export class Auth {
         return async function (dispatch) {
             console.log("auth: testing authentication")
 
-            await timeout(500);
-
             try {
+                await timeout(API_TIMEOUT);
                 let user = await UserApi.getSelf()
 
                 dispatch(UserActions.load({id: user.id, user}))
@@ -259,7 +258,7 @@ export class Auth {
 
                 console.log("auth: signed in as", user.nickname)
             } catch (err) {
-                if (err.code == CommonErrors.ERR_UNAUTHORIZED) {
+                if (err.code == CommonErrors.ERR_UNAUTHORIZED || err.code == UserErrors.ERR_USER_NOT_FOUND) {
                     dispatch(AuthActions.logout())
 
                     return
@@ -279,6 +278,7 @@ export class Auth {
 
             let authResult: OAuthResult
             try {
+                await timeout(API_TIMEOUT);
                 authResult = await GoogleOAuth.auth()
             } catch (e) {
                 dispatch(AuthActions.signInFailed())
@@ -319,6 +319,7 @@ export class Auth {
             dispatch(AuthActions.signUpProcess())
 
             try {
+                await timeout(API_TIMEOUT);
                 let signUpResult = await AuthApi.googleSignUp({
                     nonce: nonce,
                     idtoken: idToken,

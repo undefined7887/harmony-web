@@ -102,8 +102,6 @@ const chatSlice = createSlice({
         },
 
         updateChatTyping(state, action: PayloadAction<ChatUpdateTypingPayload>) {
-            console.log("chat: updating chat typing")
-
             if (!state.typing[action.payload.chatId]) {
                 state.typing[action.payload.chatId] = []
             }
@@ -143,8 +141,6 @@ const chatSlice = createSlice({
         },
 
         setCurrentChat(state, action: PayloadAction<ChatChoosePayload>) {
-            console.log("chat: current chat", action.payload.chat)
-
             state.currentChat = action.payload.chat
         },
     }
@@ -162,7 +158,9 @@ export class Chat {
             try {
                 let listChatsResponse = await ChatApi.listChats()
 
-                dispatch(ChatActions.listChats({chats: listChatsResponse.items}))
+                dispatch(ChatActions.listChats({
+                    chats: listChatsResponse.items
+                }))
 
                 console.log("chat: loaded chats")
             } catch (err) {
@@ -182,7 +180,10 @@ export class Chat {
             try {
                 let listMessagesResponse = await ChatApi.listMessages(peerId, peerType)
 
-                dispatch(ChatActions.listMessages({chatId: peerId, messages: listMessagesResponse.items}))
+                dispatch(ChatActions.listMessages({
+                    chatId: peerId,
+                    messages: listMessagesResponse.items
+                }))
 
                 console.log("chat: loaded messages")
             } catch (err) {
@@ -201,7 +202,12 @@ export class Chat {
 
             try {
                 await ChatApi.createMessage(peerId, peerType, text)
-            } catch (e) {
+                console.log("chat: sent message")
+            } catch (err) {
+                if (err.code == ChatErrors.ERR_CHATS_NOT_FOUND) {
+                    return
+                }
+
                 await timeout(RETRY_TIMEOUT)
                 dispatch(Chat.createMessage(peerId, peerType, text))
             }
@@ -215,7 +221,7 @@ export class Chat {
             try {
                 await ChatApi.updateChatRead(peerId, peerType)
             } catch (err) {
-                if (err.code == ChatErrors.ERR_MESSAGE_NOT_FOUND) {
+                if (err.code == ChatErrors.ERR_CHATS_NOT_FOUND || err.code == ChatErrors.ERR_MESSAGE_NOT_FOUND) {
                     return
                 }
 
@@ -232,72 +238,13 @@ export class Chat {
             try {
                 await ChatApi.updateChatTyping(peerId, peerType, typing)
             } catch (err) {
+                if (err.code == ChatErrors.ERR_CHATS_NOT_FOUND) {
+                    return
+                }
+
                 await timeout(RETRY_TIMEOUT)
                 dispatch(Chat.updateChatTyping(peerId, peerType, typing))
             }
-        }
-    }
-
-    static newMessage(message: MessageModel): AppThunkAction {
-        return async function (dispatch, getState) {
-            let authState = getState().auth
-            let chatState = getState().chat
-
-            switch (message.peer_type) {
-                case ChatType.USER:
-                    let chatId = message.user_id == authState.userId ? message.peer_id : message.user_id
-
-                    if (chatState.chats.findIndex(chat => chat.id == chatId) < 0) {
-                        // Chat not found, creating new chat
-                        dispatch(ChatActions.newChat({
-                            chat: {
-                                id: chatId,
-                                type: ChatType.USER,
-                                message: message,
-                                unread_count: 0
-                            }
-                        }))
-                    }
-
-                    dispatch(ChatActions.newMessage({
-                        chatId,
-                        message,
-
-                        // Updating unread count in case message isn't sent by current user
-                        update_unread_count: message.user_id != authState.userId
-                    }))
-
-                    if (message.user_id != authState.userId) {
-                        dispatch(ChatActions.updateChatTyping({chatId: chatId, userId: message.user_id, typing: false}))
-                    }
-
-                    break
-            }
-        }
-    }
-
-    static chatReadUpdates(peerId: string, userId: string): AppThunkAction {
-        return async function (dispatch, getState) {
-            let authState = getState().auth
-
-            let chatId = userId == authState.userId ? peerId : userId
-            console.log("chat: updating read for", chatId)
-
-            // peerId will be always current user
-            dispatch(ChatActions.updateChatRead({chatId, userId}))
-        }
-    }
-
-    static chatTypingUpdates(peerId: string, userId: string, typing: boolean): AppThunkAction {
-        return async function (dispatch) {
-            console.log("chat: updating typing for", peerId, "set", typing)
-
-            // peerId will be always current user
-            dispatch(ChatActions.updateChatTyping({chatId: userId, userId, typing: typing}))
-
-            setTimeout(() => {
-                dispatch(ChatActions.updateChatTypingCheck({chatId: userId, userId, typing: false}))
-            }, TYPING_CHECK_TIMEOUT)
         }
     }
 }

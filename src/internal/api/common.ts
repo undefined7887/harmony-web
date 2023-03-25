@@ -1,5 +1,6 @@
 import config from "config/config.json"
 
+export const API_TIMEOUT = 500
 export const RETRY_TIMEOUT = 2000
 
 export interface ApiError {

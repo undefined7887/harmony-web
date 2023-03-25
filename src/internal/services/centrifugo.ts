@@ -3,11 +3,13 @@ import {AppThunkAction} from "src/internal/store";
 import {Centrifuge, PublicationContext, State} from "centrifuge";
 
 import config from "config/config.json"
-import {Chat, ChatActions} from "src/internal/services/chat";
-import {MessageModel} from "src/internal/api/chat";
+import {Chat, ChatActions, TYPING_CHECK_TIMEOUT} from "src/internal/services/chat";
+import {ChatReadUpdateNotification, ChatType, ChatTypingUpdateNotification, MessageModel} from "src/internal/api/chat";
 import {AuthActions} from "src/internal/services/auth";
 import {User, UserActions} from "src/internal/services/user";
 import {UserModel} from "src/internal/api/user";
+import {timeout} from "src/internal/utils/common";
+import {API_TIMEOUT} from "src/internal/api/common";
 
 export interface CentrifugoState {
     connected: boolean
@@ -39,6 +41,7 @@ export class CentrifugoManager {
         return async function (dispatch, getState) {
             let authState = getState().auth
 
+            await timeout(API_TIMEOUT)
             CentrifugoManager.connection = new Centrifuge(config.addresses.centrifugo)
 
             CentrifugoManager.connection.once("connected", () => {
@@ -64,14 +67,20 @@ export class CentrifugoManager {
                 }
             })
 
-            CentrifugoManager
-                .subscribe(`chat:message/new#${authState.userId}`, CentrifugoManager.onChatNewMessage(dispatch))
+            CentrifugoManager.subscribe(
+                `chat:message/new#${authState.userId}`,
+                CentrifugoManager.onChatNewMessage(dispatch, getState)
+            )
 
-            CentrifugoManager
-                .subscribe(`chat:read/updates#${authState.userId}`, CentrifugoManager.onChatReadUpdates(dispatch))
+            CentrifugoManager.subscribe(
+                `chat:read/updates#${authState.userId}`,
+                CentrifugoManager.onChatReadUpdates(dispatch, getState)
+            )
 
-            CentrifugoManager
-                .subscribe(`chat:typing/updates#${authState.userId}`, CentrifugoManager.onChatTypingUpdates(dispatch))
+            CentrifugoManager.subscribe(
+                `chat:typing/updates#${authState.userId}`,
+                CentrifugoManager.onChatTypingUpdates(dispatch, getState)
+            )
 
             CentrifugoManager.connection.connect()
         }
@@ -79,10 +88,7 @@ export class CentrifugoManager {
 
     static subscribeUser(id: string): AppThunkAction {
         return async function (dispatch) {
-            console.log("user: subscribing to", id)
-
-            CentrifugoManager
-                .subscribe(`user:${id}`, CentrifugoManager.onUserUpdate(dispatch))
+            CentrifugoManager.subscribe(`user:${id}`, CentrifugoManager.onUserUpdate(dispatch))
         }
     }
 
@@ -94,34 +100,100 @@ export class CentrifugoManager {
         })
 
         subscription.on("publication", ctx => {
-            console.log("centrifugo: publication on channel", channel, ctx.data)
+            console.log("centrifugo: publication on channel", channel)
             callback(ctx)
         })
 
-        subscription.subscribe()
+        try {
+            subscription.subscribe()
+        } catch (err) {
+            console.log("centrifugo: subscription: error", err)
+        }
     }
 
     private static onUserUpdate(dispatch): (PublicationContext) => void {
         return async function (ctx: PublicationContext) {
-            dispatch(User.update(ctx.data as UserModel))
+            let user = ctx.data as UserModel
+
+            dispatch(UserActions.load({id: user.id, user}))
         }
     }
 
-    private static onChatNewMessage(dispatch): (PublicationContext) => void {
+    private static onChatNewMessage(dispatch, getState): (PublicationContext) => void {
         return async function (ctx: PublicationContext) {
-            dispatch(Chat.newMessage(ctx.data as MessageModel))
+            let message = ctx.data as MessageModel
+
+            let authState = getState().auth
+            let chatState = getState().chat
+
+            console.log("centrifugo: chat: new message", message.id)
+
+            switch (message.peer_type) {
+                case ChatType.USER:
+                    let chatId = message.user_id == authState.userId ? message.peer_id : message.user_id
+
+                    if (chatState.chats.findIndex(chat => chat.id == chatId) < 0) {
+                        // Chat not found, creating new chat
+                        dispatch(ChatActions.newChat({
+                            chat: {
+                                id: chatId,
+                                type: ChatType.USER,
+                                message: message,
+                                unread_count: 0
+                            }
+                        }))
+                    }
+
+                    dispatch(ChatActions.newMessage({
+                        chatId,
+                        message,
+
+                        // Updating unread count in case message isn't sent by current user
+                        update_unread_count: message.user_id != authState.userId
+                    }))
+
+                    if (message.user_id != authState.userId) {
+                        dispatch(ChatActions.updateChatTyping({chatId: chatId, userId: message.user_id, typing: false}))
+                    }
+
+                    break
+            }
         }
     }
 
-    private static onChatReadUpdates(dispatch): (PublicationContext) => void {
+    private static onChatReadUpdates(dispatch, getState): (PublicationContext) => void {
         return async function (ctx: PublicationContext) {
-            dispatch(Chat.chatReadUpdates(ctx.data.peer_id, ctx.data.user_id))
+            let notification = ctx.data as ChatReadUpdateNotification
+            let authState = getState().auth
+
+            let chatId = notification.peer_id == authState.userId ? notification.user_id : notification.peer_id
+            console.log("centrifugo: chat: read update", chatId)
+
+            dispatch(ChatActions.updateChatRead({chatId, userId: notification.user_id}))
         }
     }
 
-    private static onChatTypingUpdates(dispatch): (PublicationContext) => void {
+    private static onChatTypingUpdates(dispatch, getState): (PublicationContext) => void {
         return async function (ctx: PublicationContext) {
-            dispatch(Chat.chatTypingUpdates(ctx.data.peer_id, ctx.data.user_id, ctx.data.typing))
+            let notification = ctx.data as ChatTypingUpdateNotification
+            let authState = getState().auth
+
+            let chatId = notification.peer_id == authState.userId ? notification.user_id : notification.peer_id
+            console.log("centrifugo: chat: typing update", chatId)
+
+            dispatch(ChatActions.updateChatTyping({
+                chatId,
+                userId: notification.user_id,
+                typing: notification.typing
+            }))
+
+            setTimeout(() => {
+                dispatch(ChatActions.updateChatTypingCheck({
+                    chatId,
+                    userId: notification.user_id,
+                    typing: false
+                }))
+            }, TYPING_CHECK_TIMEOUT)
         }
     }
 }

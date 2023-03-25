@@ -1,4 +1,6 @@
 import {HttpMethods, makeHttpRequest} from "src/internal/api/common";
+import {Simulate} from "react-dom/test-utils";
+import dragExit = Simulate.dragExit;
 
 export class ChatErrors {
     static ERR_MESSAGE_NOT_FOUND = 301
@@ -46,6 +48,19 @@ export interface CreateMessageResponse {
 }
 
 export interface UpdateChatTypingRequest {
+    typing: boolean
+}
+
+export interface ChatReadUpdateNotification {
+    peer_id: string
+    peer_type: string
+    user_id: string
+}
+
+export interface ChatTypingUpdateNotification {
+    peer_id: string
+    peer_type: string
+    user_id: string
     typing: boolean
 }
 

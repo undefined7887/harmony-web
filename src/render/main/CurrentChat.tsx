@@ -22,13 +22,13 @@ export function CurrentChat({chat}: Props) {
     let chatState = useSelector<AppState, ChatState>(state => state.chat)
     let dispatch = useDispatch<AppDispatch>()
 
+    let messages = chatState.messages[chat?.id]
+
     let messagesRef = useRef<HTMLDivElement>()
     let [messagesScroll, setMessagesScroll] = useState<boolean>(true)
 
-    let [text, setText] = useState<string>("")
-    let [lastPress, setLastPress] = useState<number>(0)
-
-    let messages = chatState.messages[chat?.id]
+    let [messageText, setMessageText] = useState<string>("")
+    let [messageLastTypingUpdate, setMessageLastTypingUpdate] = useState<number>(0)
 
     useEffect(() => {
         if (chat && !messages) {
@@ -36,29 +36,45 @@ export function CurrentChat({chat}: Props) {
         }
     }, [chat, messages])
 
-    useEffect(() => {
-        if (messagesRef.current && messages) {
-            // If page on bottom or last message is sent by current user
-            if (messagesScroll || messages[0].user_id == authState.userId) {
-                messagesRef.current.scrollTo(0, messagesRef.current.scrollHeight)
-            }
+    let currentUser = userState.users[authState.userId]
 
-            if (messagesScroll &&
-                userState.users[authState.userId].status == UserStatus.ONLINE &&
-                messages[0] &&
-                messages[0].user_id != authState.userId &&
-                messages[0].read_user_ids.indexOf(authState.userId) < 0) {
-                dispatch(Chat.updateChatRead(chat.id, chat.type))
-            }
+    useEffect(() => {
+        if (!messagesRef.current || !messages) {
+            return
         }
-    }, [messages?.length, document.hasFocus(), messagesScroll])
+
+        if (messages[0]?.user_id == authState.userId || messagesScroll) {
+            messagesRef.current.scrollTo(0, messagesRef.current.scrollHeight)
+        }
+
+        if (
+            messages[0] &&
+            messages[0].user_id != authState.userId &&
+            !messages[0].read_user_ids.includes(authState.userId) &&
+            messagesScroll &&
+            currentUser.status == UserStatus.ONLINE
+        ) {
+            dispatch(Chat.updateChatRead(chat.id, chat.type))
+        }
+    }, [messages, messagesScroll, currentUser.status == UserStatus.ONLINE])
 
     function createMessage() {
         if (chat.type == ChatType.USER) {
-            dispatch(Chat.createMessage(chat.id, chat.type, text))
+            dispatch(Chat.createMessage(chat.id, chat.type, messageText))
         }
 
-        setText("")
+        setMessageText("")
+    }
+
+    function updateTyping() {
+        let now = new Date().getTime()
+
+        // Sending update typing every 2 seconds
+        if (Math.abs(now - messageLastTypingUpdate) > TYPING_TIMEOUT) {
+            setMessageLastTypingUpdate(now)
+
+            dispatch(Chat.updateChatTyping(chat.id, chat.type, true))
+        }
     }
 
     function renderPhoto() {
@@ -128,8 +144,7 @@ export function CurrentChat({chat}: Props) {
         }
     }
 
-    function renderChat():
-        React.ReactElement {
+    function renderChat(): React.ReactElement {
         if (!chat) {
             return <div className={Styles.SelectChat}>👈 Select chat from list</div>
         }
@@ -161,25 +176,18 @@ export function CurrentChat({chat}: Props) {
 
                 <input className={Styles.Input}
                        placeholder="Type here..."
-                       value={text}
+                       value={messageText}
                        onChange={e => {
-                           setText(e.target.value)
+                           setMessageText(e.target.value)
                        }}
                        onKeyDown={e => {
                            if (e.key == "Enter") {
                                e.preventDefault()
                                createMessage()
-
                                return
                            }
 
-                           let now = new Date().getTime()
-
-                           // Sending update typing every 2 seconds
-                           if (Math.abs(now - lastPress) > TYPING_TIMEOUT) {
-                               dispatch(Chat.updateChatTyping(chat.id, chat.type, true))
-                               setLastPress(now)
-                           }
+                           updateTyping()
                        }}/>
             </div>
         )

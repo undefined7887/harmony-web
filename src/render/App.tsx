@@ -18,33 +18,8 @@ import {UserStatus} from "src/internal/api/user";
 export function App() {
     let navigate = useNavigate();
 
-    let centrifugoState = useSelector<AppState, CentrifugoState>(state => state.centrifugo)
     let authState = useSelector<AppState, AuthState>(state => state.auth)
     let dispatch = useDispatch<AppDispatch>()
-
-    useEffect(() => {
-        window.addEventListener("focus", () => {
-            dispatch(User.updateSelfStatus(UserStatus.ONLINE))
-        })
-
-        window.addEventListener("blur", () => {
-            dispatch(User.updateSelfStatus(UserStatus.AWAY))
-        })
-
-        window.addEventListener("unload", () => {
-            dispatch(User.updateSelfStatus(UserStatus.OFFLINE))
-        })
-    }, [])
-
-    useEffect(() => {
-        if (centrifugoState.connected) {
-            if (document.hasFocus()) {
-                dispatch(User.updateSelfStatus(UserStatus.ONLINE))
-            } else {
-                dispatch(User.updateSelfStatus(UserStatus.AWAY))
-            }
-        }
-    }, [centrifugoState.connected])
 
     useEffect(() => {
         switch (authState.step) {
@@ -58,6 +33,7 @@ export function App() {
 
             case AuthStep.OK:
                 dispatch(CentrifugoManager.connect())
+                navigate(AppRoutes.main)
                 return
         }
     }, [authState.step])

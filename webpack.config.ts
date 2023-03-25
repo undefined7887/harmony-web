@@ -8,6 +8,8 @@ import HtmlWebpackPlugin from "html-webpack-plugin";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import Shell from "shelljs";
 
+import config from "./config/config.json"
+
 interface Environment {
     production: boolean
 }
@@ -19,7 +21,7 @@ export default function (env: Environment): webpack.Configuration[] {
 }
 
 function mainConfig(env: Environment): webpack.Configuration {
-    return config(env,
+    return makeConfig(env,
         function base() {
             return {
                 mode: env.production ? "production" : "development",
@@ -112,10 +114,12 @@ function mainConfig(env: Environment): webpack.Configuration {
         },
 
         function devServer() {
+            let listenAddr = new URL(config.addresses.public)
+
             return {
                 devServer: {
-                    host: "localhost",
-                    port: 8081,
+                    host: listenAddr.hostname,
+                    port: listenAddr.port,
                     open: "/auth",
                     compress: true,
                     historyApiFallback: true,
@@ -127,7 +131,7 @@ function mainConfig(env: Environment): webpack.Configuration {
 
 type ConfigEntry = ((env: Environment) => webpack.Configuration) | webpack.Configuration
 
-function config(env: Environment, ...entries: ConfigEntry[]): webpack.Configuration {
+function makeConfig(env: Environment, ...entries: ConfigEntry[]): webpack.Configuration {
     let result: webpack.Configuration = {};
 
     for (let entry of entries) {

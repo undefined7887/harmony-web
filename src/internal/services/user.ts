@@ -51,21 +51,15 @@ export class User {
         return async function (dispatch, getState) {
             console.log("user: loading", id)
 
-            let userState = getState().user
-
-            if (!userState.users.hasOwnProperty(id)) {
-                dispatch(CentrifugoManager.subscribeUser(id))
-            }
-
             dispatch(UserActions.load({id, user: null}))
             await timeout(500)
 
             try {
                 let user = await UserApi.get(id)
+                console.log("user: loaded", user.id)
 
                 dispatch(UserActions.load({id: user.id, user}))
-
-                console.log("user: loaded", id)
+                dispatch(CentrifugoManager.subscribeUser(user.id))
             } catch (err) {
                 if (err.code == UserErrors.ERR_USER_NOT_FOUND) {
                     return
@@ -79,56 +73,54 @@ export class User {
         }
     }
 
-    static updateSelfStatus(status: UserStatus): AppThunkAction {
-        return async function (dispatch, getState) {
-            console.log("user: updating self status to", status)
-
-            let authState = getState().auth
-            let userState = getState().user
-
-            let user = userState.users[authState.userId]
-
-            try {
-                await UserApi.updateSelfStatus(status)
-                dispatch(UserActions.load({id: user.id, user: {...user, status}}))
-            } catch (err) {
-                await timeout(RETRY_TIMEOUT)
-                dispatch(User.updateSelfStatus(status))
-            }
-        }
-    }
-
-    static update(user: UserModel): AppThunkAction {
-        return async function (dispatch) {
-            console.log("user: updating", user.id)
-
-            dispatch(UserActions.load({id: user.id, user}))
-        }
-    }
-
     static search(nickname: string): AppThunkAction {
         return async function (dispatch, getState) {
             console.log("user: searching", nickname)
 
-            let userState = getState().user
-
             try {
                 let user = await UserApi.search(nickname)
+                console.log("user: found", user.id)
 
                 dispatch(UserActions.search({userId: user.id}))
-
-                if (!userState.users.hasOwnProperty(user.id)) {
-                    dispatch(UserActions.load({id: user.id, user}))
-                    dispatch(CentrifugoManager.subscribeUser(user.id))
-                }
+                dispatch(UserActions.load({id: user.id, user}))
+                dispatch(CentrifugoManager.subscribeUser(user.id))
             } catch (err) {
                 if (err.code == UserErrors.ERR_USER_NOT_FOUND) {
                     dispatch(UserActions.search({userId: null}))
                     return
                 }
 
+                console.log("user: retrying searching", nickname)
+
                 await timeout(RETRY_TIMEOUT);
                 dispatch(User.search(nickname))
+            }
+        }
+    }
+
+    static updateSelfStatus(status: UserStatus): AppThunkAction {
+        return async function (dispatch, getState) {
+            console.log("user: updating self status", status)
+
+            try {
+                await UserApi.updateSelfStatus(status)
+
+                let authState = getState().auth
+                let userState = getState().user
+
+                let user = userState.users[authState.userId]
+
+                dispatch(UserActions.load({
+                    id: user.id,
+                    user: {...user, status}
+                }))
+            } catch (err) {
+                if (err.code == UserErrors.ERR_USER_NOT_FOUND) {
+                    return
+                }
+
+                await timeout(RETRY_TIMEOUT)
+                dispatch(User.updateSelfStatus(status))
             }
         }
     }
