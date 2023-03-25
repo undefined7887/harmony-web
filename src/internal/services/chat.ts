@@ -2,7 +2,7 @@ import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {AppThunkAction} from "src/internal/store";
 import {ChatApi, ChatErrors, ChatModel, ChatType, MessageModel} from "src/internal/api/chat";
 import {timeout} from "src/internal/utils/common";
-import {RETRY_TIMEOUT} from "src/internal/api/common";
+import {CommonErrors, RETRY_TIMEOUT} from "src/internal/api/common";
 
 export const TYPING_TIMEOUT = 2_000
 export const TYPING_CHECK_TIMEOUT = 5_000
@@ -192,6 +192,13 @@ export class Chat {
 
                     return
                 }
+
+                if (err.code == CommonErrors.ERR_UNKNOWN) {
+                    console.log("chat: retrying loading messages")
+
+                    await timeout(RETRY_TIMEOUT)
+                    dispatch(Chat.listMessages(peerId, peerType))
+                }
             }
         }
     }
@@ -208,8 +215,12 @@ export class Chat {
                     return
                 }
 
-                await timeout(RETRY_TIMEOUT)
-                dispatch(Chat.createMessage(peerId, peerType, text))
+                if (err.code == CommonErrors.ERR_UNKNOWN) {
+                    console.log("chat: retrying sending message")
+
+                    await timeout(RETRY_TIMEOUT)
+                    dispatch(Chat.createMessage(peerId, peerType, text))
+                }
             }
         }
     }
@@ -225,8 +236,12 @@ export class Chat {
                     return
                 }
 
-                await timeout(RETRY_TIMEOUT)
-                dispatch(Chat.updateChatRead(peerId, peerType))
+                if (err.code == CommonErrors.ERR_UNKNOWN) {
+                    console.log("chat: retrying update read")
+
+                    await timeout(RETRY_TIMEOUT)
+                    dispatch(Chat.updateChatRead(peerId, peerType))
+                }
             }
         }
     }
@@ -242,8 +257,12 @@ export class Chat {
                     return
                 }
 
-                await timeout(RETRY_TIMEOUT)
-                dispatch(Chat.updateChatTyping(peerId, peerType, typing))
+                if (err.code == CommonErrors.ERR_UNKNOWN) {
+                    console.log("chat: retrying update typing")
+
+                    await timeout(RETRY_TIMEOUT)
+                    dispatch(Chat.updateChatTyping(peerId, peerType, typing))
+                }
             }
         }
     }

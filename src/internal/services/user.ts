@@ -2,7 +2,7 @@ import {UserApi, UserErrors, UserModel, UserStatus} from "src/internal/api/user"
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {AppThunkAction} from "src/internal/store";
 import {timeout} from "src/internal/utils/common";
-import {RETRY_TIMEOUT} from "src/internal/api/common";
+import {CommonErrors, RETRY_TIMEOUT} from "src/internal/api/common";
 import {useEffect} from "react";
 import {CentrifugoActions, CentrifugoManager} from "src/internal/services/centrifugo";
 
@@ -65,10 +65,12 @@ export class User {
                     return
                 }
 
-                console.warn("user: retrying load", id)
+                if (err.code == CommonErrors.ERR_UNKNOWN) {
+                    console.warn("user: retrying load", id)
 
-                await timeout(RETRY_TIMEOUT)
-                dispatch(User.get(id))
+                    await timeout(RETRY_TIMEOUT)
+                    dispatch(User.get(id))
+                }
             }
         }
     }
@@ -90,10 +92,12 @@ export class User {
                     return
                 }
 
-                console.log("user: retrying searching", nickname)
+                if (err.code == CommonErrors.ERR_UNKNOWN) {
+                    console.log("user: retrying searching", nickname)
 
-                await timeout(RETRY_TIMEOUT);
-                dispatch(User.search(nickname))
+                    await timeout(RETRY_TIMEOUT);
+                    dispatch(User.search(nickname))
+                }
             }
         }
     }
@@ -119,8 +123,12 @@ export class User {
                     return
                 }
 
-                await timeout(RETRY_TIMEOUT)
-                dispatch(User.updateSelfStatus(status))
+                if (err.code == CommonErrors.ERR_UNKNOWN) {
+                    console.log("user: retrying update self status", status)
+
+                    await timeout(RETRY_TIMEOUT)
+                    dispatch(User.updateSelfStatus(status))
+                }
             }
         }
     }

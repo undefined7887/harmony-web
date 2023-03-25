@@ -35,19 +35,19 @@ export function MainPage() {
 
     function setWindowHandlers() {
         let focusCallback = () => {
-            if (authState.userId) {
+            if (centrifugoState.connected && authState.userId) {
                 dispatch(User.updateSelfStatus(UserStatus.ONLINE))
             }
         }
 
         let blurCallback = () => {
-            if (authState.userId) {
+            if (centrifugoState.connected && authState.userId) {
                 dispatch(User.updateSelfStatus(UserStatus.AWAY))
             }
         }
 
         let unloadCallback = () => {
-            if (authState.userId) {
+            if (centrifugoState.connected && authState.userId) {
                 dispatch(User.updateSelfStatus(UserStatus.OFFLINE))
             }
         }
