@@ -2,13 +2,11 @@
 
 .Logo {
   @extend .PositionAbsoluteCenter;
-
   height: 150px;
 }
 
 .Container {
   @extend .FlexCenter;
-
   width: 100%;
   height: 100%;
 }

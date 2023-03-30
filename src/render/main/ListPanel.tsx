@@ -12,6 +12,7 @@ import {ChatModel, ChatType} from "src/internal/api/chat";
 import Styles from "src/render/main/ListPanel.module.scss"
 import {UserModel} from "src/internal/api/user";
 import {Nickname} from "src/render/main/common/Nickname";
+import {Call} from "src/render/main/Call";
 
 export function ListPanel() {
     let userState = useSelector<AppState, UserState>(state => state.user)
@@ -70,6 +71,11 @@ export function ListPanel() {
             </div>
 
             <Spacer/>
+            {
+                searchUser
+                    ? <Call user={searchUser}/>
+                    : <></>
+            }
             <Profile/>
         </div>
     )
