@@ -1,29 +1,39 @@
-import React, {useState} from "react";
+import React from "react";
 import {useSelector} from "react-redux";
 import {AppState} from "src/internal/store";
 import {AuthState} from "src/internal/services/auth";
 
-import Style from "./Profile.module.scss"
-import {splitUserNickname, UserState} from "src/internal/services/user";
+import {UserState} from "src/internal/services/user";
+import {Nickname} from "src/render/main/common/Nickname";
+
+import Styles from "./Profile.module.scss"
+import {UserStatus} from "src/internal/api/user";
 
 export function Profile() {
     let authState = useSelector<AppState, AuthState>(state => state.auth)
     let userState = useSelector<AppState, UserState>(state => state.user)
 
     let user = userState.users[authState.userId]
-    let [nickname, nicknameTag] = splitUserNickname(user)
+
+    function renderStatus() {
+        switch (user.status) {
+            case UserStatus.ONLINE:
+                return <div className={Styles.StatusOnline}>Online</div>
+
+            case UserStatus.AWAY:
+                return <div className={Styles.StatusAway}>Away</div>
+        }
+    }
 
     return (
-        <div className={Style.Container}>
-            <img className={Style.Avatar} src={user.photo} alt=""/>
+        <div className={Styles.Container}>
+            <img className={Styles.Avatar} src={user.photo} alt=""/>
 
-            <div className={Style.Info}>
-                <div className={Style.Nickname}>
-                    {nickname}
-                    <span className={Style.NicknameTag}>{nicknameTag}</span>
-                </div>
+            <div className={Styles.Info}>
+                <Nickname className={Styles.Nickname}
+                          nickname={user.nickname}/>
 
-                <div className={Style.Status}>online</div>
+                {renderStatus()}
             </div>
         </div>
     )

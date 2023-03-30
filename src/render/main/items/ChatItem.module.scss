@@ -2,18 +2,29 @@
 @import "src/style/colors.scss";
 
 .Loader {
-  width: calc(100% - 60px);
   height: 60px;
-  margin: 15px 30px;
+  width: calc(100% - 60px);
+  margin: 15px 30px 35px 30px;
   border-radius: 50px;
+  animation: loader 1s infinite linear;
+  background: linear-gradient(90deg, $col_back_elem 0px, $col_back_elem_selected 20%, $col_back_elem 25%);
+  background-size: 200% 200%;
+}
+
+@keyframes loader {
+  0% {
+    background-position: 50%;
+  }
+  100% {
+    background-position: -150%;
+  }
 }
 
 .Container {
   @extend .FlexRow;
-
   box-sizing: border-box;
   width: calc(100% - 30px);
-  margin: 0 15px;
+  margin: 0 15px 5px 15px;
   padding: 15px;
   cursor: pointer;
   border-radius: 50px;
@@ -21,7 +32,6 @@
 
 .ContainerActive {
   @extend .Container;
-
   background-color: $col_back_elem;
 }
 
@@ -29,11 +39,11 @@
   background-color: $col_back_elem;
 }
 
-.PhotoBox {
+.Photo {
   position: relative;
 }
 
-.Photo {
+.PhotoImage {
   width: 60px;
   height: 60px;
   margin-right: 15px;
@@ -55,19 +65,16 @@
 
 .StatusOnline {
   @extend .Status;
-
   background-color: $col_main;
 }
 
 .StatusAway {
   @extend .Status;
-
   background-color: $col_orange;
 }
 
 .StatusSilence {
   @extend .Status;
-
   background-color: $col_red;
 }
 
@@ -76,20 +83,18 @@
   font-weight: 500;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
-.Name {
+.Nickname {
   margin-bottom: 4px;
-  color: $col_text_white;
-}
-
-.NicknameTag {
-  margin-left: 2px;
-  color: $col_text_nickname_tag;
 }
 
 .Message {
   color: $col_text_hint_message;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .UnreadCount {

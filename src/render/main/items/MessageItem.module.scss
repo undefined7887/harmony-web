@@ -3,11 +3,27 @@
 
 .Container {
   @extend .FlexRow;
-
   margin-bottom: 5px;
 }
 
-.Content {
+.ContainerLeft {
+  @extend .Container;
+
+  .Unread {
+    margin-left: 20px;
+  }
+}
+
+.ContainerRight {
+  @extend .Container;
+  flex-direction: row-reverse;
+
+  .Unread {
+    margin-right: 20px;
+  }
+}
+
+.Text {
   font-size: 16px;
   font-weight: 500;
   width: max-content;
@@ -17,6 +33,7 @@
   color: $col_text_white;
   border-radius: 20px;
   background-color: $col_back_elem;
+  word-wrap: break-word;
 }
 
 .Time {
@@ -34,11 +51,3 @@
   background-color: $col_main;
 }
 
-.Right {
-  flex-direction: row-reverse;
-
-  .Content {
-    margin-right: 0;
-    margin-left: 20px;
-  }
-}

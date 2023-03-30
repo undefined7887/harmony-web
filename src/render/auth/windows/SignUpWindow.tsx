@@ -1,13 +1,13 @@
 import React, {useRef} from "react";
 import {useDispatch, useSelector} from "react-redux";
-import {classes} from "src/render/utils";
-import {Spacer} from "src/render/Spacer";
 import {AppDispatch, AppState} from "src/internal/store";
 import {Auth, AuthActions, AuthState, AuthStep, AuthType, GoogleClaims} from "src/internal/services/auth";
 import {getJwtClaims} from "src/internal/utils/token";
 
-import Styles from "./SignUpWindow.module.scss";
+import {Spacer} from "src/render/common/Spacer";
+import {Window} from "src/render/auth/Window";
 
+import Styles from "./SignUpWindow.module.scss";
 import googleIconSrc from "assets/images/googleIcon.svg"
 
 export function SignUpWindow() {
@@ -28,17 +28,6 @@ export function SignUpWindow() {
         }
     }
 
-    function getHintClasses(): string {
-        switch (authState.step) {
-            case AuthStep.SIGN_UP:
-            case AuthStep.SIGN_UP_PROCESS:
-                return Styles.WindowHint
-
-            case AuthStep.SIGN_UP_FAILED:
-                return Styles.WindowHintError
-        }
-    }
-
     function getHintText(): string {
         switch (authState.step) {
             case AuthStep.SIGN_UP:
@@ -56,28 +45,27 @@ export function SignUpWindow() {
         }
     }
 
-    function renderConnectorIcon(): React.ReactElement {
-        if (authState.type == AuthType.GOOGLE) {
-            return <img className={Styles.ConnectorIcon} src={googleIconSrc} alt=""/>
-        }
-    }
-
     function getPictureSrc(): string {
         if (authState.type == AuthType.GOOGLE) {
             return getJwtClaims<GoogleClaims>(authState.idtoken).picture
         }
     }
 
+    function renderConnectorIcon(): React.ReactElement {
+        if (authState.type == AuthType.GOOGLE) {
+            return <img className={Styles.ConnectorIcon} src={googleIconSrc} alt=""/>
+        }
+    }
+
     return (
-        <div className={Styles.Window}>
-            <div className={Styles.WindowTitle}>Registration</div>
-            <div className={getHintClasses()}>{getHintText()}</div>
+        <Window title="Registration"
+                hint={getHintText()}
+                hintError={authState.step == AuthStep.SIGN_UP_FAILED}>
 
             <div className={Styles.Connector}>
                 <img className={Styles.ConnectorAvatar} src={getPictureSrc()} alt=""/>
                 <div className={Styles.ConnectorLoader}/>
                 {renderConnectorIcon()}
-
             </div>
 
             <div className={Styles.Input}
@@ -97,10 +85,10 @@ export function SignUpWindow() {
                 <span className={Styles.InputPlaceholder}>#0000</span>
             </div>
 
-            <div className={Styles.NicknameHint}>
-                <span className={Styles.NicknameHintIcon}>subdirectory_arrow_right_black</span>
+            <div className={Styles.InputHint}>
+                <span className={Styles.InputHintIcon}>subdirectory_arrow_right_black</span>
 
-                <div className={Styles.NicknameHintText}>
+                <div className={Styles.InputHintText}>
                     Nickname can contain:<br/>
                     - numbers (0-9) and letters (A-z)<br/>
                     - symbols (-_.)
@@ -110,15 +98,15 @@ export function SignUpWindow() {
             <Spacer/>
 
             <div className={Styles.Buttons}>
-                <div className={classes(Styles.Button, Styles.Back)}
+                <div className={Styles.ButtonBack}
                      onClick={() => onBack()}>
                     Back
                 </div>
                 <Spacer/>
-                <div className={classes(Styles.Button, Styles.Continue)}
+                <div className={Styles.ButtonContinue}
                      onClick={() => onContinue()}>Continue
                 </div>
             </div>
-        </div>
+        </Window>
     )
 }

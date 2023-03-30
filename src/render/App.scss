@@ -2,12 +2,13 @@
 @import "src/style/fonts.scss";
 
 body {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Open Sans', sans-serif;
   margin: 0;
   background-color: $col_back;
 }
 
 input {
+  font-family: 'Open Sans', sans-serif;
   box-sizing: border-box;
   border: none;
   outline: none;

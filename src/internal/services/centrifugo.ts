@@ -115,7 +115,7 @@ export class CentrifugoManager {
         return async function (ctx: PublicationContext) {
             let user = ctx.data as UserModel
 
-            dispatch(UserActions.load({id: user.id, user}))
+            dispatch(UserActions.loadUser({id: user.id, user}))
         }
     }
 

@@ -9,9 +9,10 @@ export const TYPING_CHECK_TIMEOUT = 5_000
 
 export interface ChatState {
     chats: ChatModel[]
-    typing: { [id: string]: { userId: string, lastUpdated: number }[] }
-    currentChat?: ChatModel
     messages: { [id: string]: MessageModel[] }
+    currentId?: string
+    currentType?: ChatType
+    typing: { [id: string]: { userId: string, lastUpdated: number }[] }
 }
 
 export interface ChatListPayload {
@@ -19,7 +20,8 @@ export interface ChatListPayload {
 }
 
 export interface ChatChoosePayload {
-    chat: ChatModel
+    chatId: string
+    chatType?: ChatType
 }
 
 export interface ChatListMessagesPayload {
@@ -74,19 +76,18 @@ const chatSlice = createSlice({
         },
 
         newMessage(state, action: PayloadAction<ChatNewMessagePayload>) {
-            // Appending message if they are loaded
             state.messages[action.payload.chatId]?.unshift(action.payload.message)
 
-            // Finding chat for message
-            let chat = state.chats
-                .find(chat => chat.id == action.payload.chatId)
-
-            // Updating chat's last message
+            let chat = state.chats.find(chat => chat.id == action.payload.chatId)
             chat.message = action.payload.message
 
             if (action.payload.update_unread_count) {
                 chat.unread_count += 1
             }
+
+            // Moving chat to the top
+            state.chats.splice(state.chats.findIndex(chat => chat.id == action.payload.chatId), 1)
+            state.chats.unshift(chat)
         },
 
         updateChatRead(state, action: PayloadAction<ChatUpdateReadPayload>) {
@@ -108,19 +109,19 @@ const chatSlice = createSlice({
 
             let now = new Date().getTime()
 
-            if (action.payload.typing) {
+            let idx = state.typing[action.payload.chatId].findIndex(typing => {
+                return typing.userId == action.payload.userId
+            })
+
+            if (action.payload.typing && idx < 0) {
                 state.typing[action.payload.chatId].push({
                     userId: action.payload.userId,
                     lastUpdated: now
                 })
-            } else {
-                let idx = state.typing[action.payload.chatId].findIndex(typing => {
-                    return typing.userId == action.payload.userId
-                })
-
-                if (idx >= 0) {
-                    state.typing[action.payload.chatId].splice(idx, 1)
-                }
+            } else if (action.payload.typing) {
+                state.typing[action.payload.chatId][idx].lastUpdated = now
+            } else if (idx >= 0) {
+                state.typing[action.payload.chatId].splice(idx, 1)
             }
         },
 
@@ -135,13 +136,14 @@ const chatSlice = createSlice({
 
             let now = new Date().getTime()
 
-            if (idx >= 0 && Math.abs(now - state.typing[action.payload.chatId][idx].lastUpdated) > TYPING_TIMEOUT) {
+            if (idx >= 0 && (now - state.typing[action.payload.chatId][idx].lastUpdated) > TYPING_TIMEOUT) {
                 state.typing[action.payload.chatId].splice(idx, 1)
             }
         },
 
         setCurrentChat(state, action: PayloadAction<ChatChoosePayload>) {
-            state.currentChat = action.payload.chat
+            state.currentId = action.payload.chatId
+            state.currentType = action.payload.chatType
         },
     }
 })
@@ -168,6 +170,13 @@ export class Chat {
                     dispatch(ChatActions.listChats({chats: []}))
 
                     return
+                }
+
+                if (err.code == CommonErrors.ERR_UNKNOWN) {
+                    console.log("chat: retrying loading chats")
+
+                    await timeout(RETRY_TIMEOUT)
+                    dispatch(Chat.listChats)
                 }
             }
         }
@@ -209,7 +218,6 @@ export class Chat {
 
             try {
                 await ChatApi.createMessage(peerId, peerType, text)
-                console.log("chat: sent message")
             } catch (err) {
                 if (err.code == ChatErrors.ERR_CHATS_NOT_FOUND) {
                     return

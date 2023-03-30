@@ -1,19 +1,20 @@
 import React from "react";
 import {useSelector} from "react-redux";
-import {Page} from "src/render/Page";
-import {LogoFull} from "src/render/logo/LogoFull";
-import {SignInWindow} from "src/render/auth/SignInWindow";
-import {SignUpWindow} from "src/render/auth/SignUpWindow";
-import {Logo} from "src/render/logo/Logo";
 import {AppState} from "src/internal/store";
 import {AuthState, AuthStep} from "src/internal/services/auth";
+
+import {Page} from "src/render/common/Page";
+import {Logo} from "src/render/common/Logo";
+import {LogoFull} from "src/render/common/LogoFull";
+import {SignInWindow} from "src/render/auth/windows/SignInWindow";
+import {SignUpWindow} from "src/render/auth/windows/SignUpWindow";
 
 import Styles from "./AuthPage.module.scss"
 
 export function AuthPage() {
     let authState = useSelector<AppState, AuthState>(state => state.auth)
 
-    function logo(): React.ReactElement {
+    function renderLogo(): React.ReactElement {
         switch (authState.step) {
             case AuthStep.INIT:
                 return <Logo className={Styles.Logo}/>
@@ -23,7 +24,7 @@ export function AuthPage() {
         }
     }
 
-    function window(): React.ReactElement {
+    function renderWindow(): React.ReactElement {
         switch (authState.step) {
             case AuthStep.SIGN_IN:
             case AuthStep.SIGN_IN_PROCESS:
@@ -39,8 +40,8 @@ export function AuthPage() {
 
     return (
         <Page>
-            {logo()}
-            {window()}
+            {renderLogo()}
+            {renderWindow()}
         </Page>
     )
 }

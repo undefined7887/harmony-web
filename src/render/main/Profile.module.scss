@@ -34,6 +34,10 @@
   color: $col_text_nickname_tag;
 }
 
-.Status {
+.StatusOnline {
   color: $col_main;
+}
+
+.StatusAway {
+  color: $col_orange;
 }

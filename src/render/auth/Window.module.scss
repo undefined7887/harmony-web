@@ -13,22 +13,20 @@
   background-color: $col_back_surface;
 }
 
-.WindowTitle {
+.Title {
   font-size: 24px;
   font-weight: 600;
   margin-bottom: 10px;
   color: $col_text_white;
 }
 
-.WindowHint {
+.Hint {
   font-size: 18px;
   font-weight: 500;
   margin-bottom: 50px;
   color: $col_text_hint;
 }
 
-.WindowHintError {
-  @extend .WindowHint;
-
+.HintError {
   color: $col_red;
 }

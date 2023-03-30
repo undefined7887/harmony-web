@@ -1,6 +1,7 @@
 import React, {useEffect} from "react";
-import {Page} from "src/render/Page";
 import {OAUTH2_MESSAGE_TYPE, OAuth} from "src/internal/services/auth";
+
+import {Page} from "src/render/common/Page";
 
 export function OAuth2Page() {
     useEffect(() => {

@@ -1,8 +1,8 @@
-@import "./common.scss";
+@import "src/style/colors.scss";
+@import "src/style/helper.scss";
 
 .Button {
   @extend .FlexRow;
-
   font-size: 16px;
   box-sizing: border-box;
   width: 100%;
@@ -16,7 +16,6 @@
 
 .ButtonIconBox {
   @extend .FlexCenter;
-
   width: 72px;
   height: 100%;
   border-radius: 30px;

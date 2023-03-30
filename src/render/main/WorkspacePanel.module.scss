@@ -1,15 +1,7 @@
 @import "src/style/colors.scss";
 @import "src/style/helper.scss";
 
-.SelectChat {
-  font-size: 20px;
-  font-weight: 500;
-  color: $col_text_hint;
-}
-
 .Container {
-  @extend .FlexCenter;
-
   box-sizing: border-box;
   width: 64%;
   height: 95%;
@@ -19,17 +11,22 @@
   background-color: $col_back_surface;
 }
 
-.Wrap {
+.ContainerEmpty {
+  @extend .Container;
+  @extend .FlexCenter;
+  font-size: 20px;
+  font-weight: 500;
+  color: $col_text_hint;
+}
+
+.ContainerFull {
+  @extend .Container;
   display: flex;
   flex-direction: column;
-
-  width: 100%;
-  height: 100%;
 }
 
 .Header {
   @extend .FlexRow;
-
   box-sizing: border-box;
   width: 100%;
   padding: 15px;
@@ -37,30 +34,22 @@
   background-color: $col_back_elem;
 }
 
-.Photo {
+.HeaderPhoto {
   width: 70px;
   height: 70px;
   margin-right: 20px;
   border-radius: 35px;
 }
 
-.Info {
+.HeaderInfo {
+  font-size: 18px;
   font-weight: 500;
   display: flex;
   flex-direction: column;
 }
 
-.Name {
-  @extend .FlexRow;
-
-  font-size: 18px;
+.HeaderNickname {
   margin-bottom: 6px;
-  color: $col_text_white;
-}
-
-.NicknameTag {
-  margin-left: 2px;
-  color: $col_text_nickname_tag;
 }
 
 .StatusOnline {
@@ -79,18 +68,29 @@
   color: $col_text_hint_message;
 }
 
-.Messages {
+.MessageList {
   display: flex;
   flex-direction: column-reverse;
+  min-height: 0;
   width: 100%;
   height: 100%;
   margin-top: 20px;
+  //noinspection CssInvalidPropertyValue
   overflow-y: auto;
+}
+
+.MessageList::-webkit-scrollbar {
+  width: 22px;
+}
+
+.MessageList::-webkit-scrollbar-thumb {
+  border: 7px solid $col_back_surface;
+  border-radius: 15px;
+  background-color: $col_back_elem_selected;
 }
 
 .Typing {
   @extend .FlexRow;
-
   padding: 5px;
   border-radius: 20px;
   align-self: start;
@@ -110,13 +110,13 @@
   width: 6px;
   height: 6px;
   margin: 0 25px;
-  animation: loader 1s ease-out infinite alternate;
+  animation: typing-loader 1s ease-out infinite alternate;
   border-radius: 50%;
   background-color: #FFF;
   box-shadow: 4px 0 #FFF, -4px 0 #FFF;
 }
 
-@keyframes loader {
+@keyframes typing-loader {
   0% {
     background-color: $col_back_loader;
     box-shadow: 10px 0 $col_back_loader, -10px 0 #FFF;
@@ -132,7 +132,6 @@
 }
 
 .Input {
-  font-family: 'Poppins', sans-serif;
   font-size: 16px;
   font-weight: 500;
   width: 100%;

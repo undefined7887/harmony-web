@@ -7,6 +7,3 @@ interface Props {
     className?: string
 }
 
-export function LoaderElement({className}: Props) {
-    return <div className={classes(Styles.Loader, className)}></div>
-}

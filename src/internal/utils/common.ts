@@ -4,7 +4,7 @@ export function timeout(milliseconds: number): Promise<void> {
     })
 }
 
-export function formatTime(num: number): string {
+export function leadingZero(num: number): string {
     if (num < 10) {
         return `0${num}`
     }

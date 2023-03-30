@@ -32,11 +32,11 @@ const userSlice = createSlice({
             return {users: {}}
         },
 
-        load(state, action: PayloadAction<UserPayload>) {
+        loadUser(state, action: PayloadAction<UserPayload>) {
             state.users[action.payload.id] = action.payload.user
         },
 
-        search(state, action: PayloadAction<UserSearchPayload>) {
+        searchUser(state, action: PayloadAction<UserSearchPayload>) {
             state.searchUser = action.payload.userId
         }
     }
@@ -48,20 +48,22 @@ export const userReducer = userSlice.reducer
 
 export class User {
     static get(id: string): AppThunkAction {
-        return async function (dispatch, getState) {
+        return async function (dispatch) {
             console.log("user: loading", id)
 
-            dispatch(UserActions.load({id, user: null}))
-            await timeout(500)
+            await timeout(1000)
 
             try {
                 let user = await UserApi.get(id)
-                console.log("user: loaded", user.id)
 
-                dispatch(UserActions.load({id: user.id, user}))
+                dispatch(UserActions.loadUser({id, user}))
                 dispatch(CentrifugoManager.subscribeUser(user.id))
+
+                console.log("user: loaded", user.id)
             } catch (err) {
                 if (err.code == UserErrors.ERR_USER_NOT_FOUND) {
+                    dispatch(UserActions.loadUser({id, user: {} as UserModel}))
+
                     return
                 }
 
@@ -76,19 +78,21 @@ export class User {
     }
 
     static search(nickname: string): AppThunkAction {
-        return async function (dispatch, getState) {
+        return async function (dispatch) {
             console.log("user: searching", nickname)
 
             try {
                 let user = await UserApi.search(nickname)
-                console.log("user: found", user.id)
 
-                dispatch(UserActions.search({userId: user.id}))
-                dispatch(UserActions.load({id: user.id, user}))
+                // Loading found user
+                dispatch(UserActions.loadUser({id: user.id, user}))
                 dispatch(CentrifugoManager.subscribeUser(user.id))
+
+                dispatch(UserActions.searchUser({userId: user.id}))
+
+                console.log("user: found", user.id)
             } catch (err) {
                 if (err.code == UserErrors.ERR_USER_NOT_FOUND) {
-                    dispatch(UserActions.search({userId: null}))
                     return
                 }
 
@@ -114,7 +118,7 @@ export class User {
 
                 let user = userState.users[authState.userId]
 
-                dispatch(UserActions.load({
+                dispatch(UserActions.loadUser({
                     id: user.id,
                     user: {...user, status}
                 }))
@@ -132,12 +136,6 @@ export class User {
             }
         }
     }
-}
-
-export function splitUserNickname(user: UserModel): string[] {
-    let [nickname, nicknameTag] = user.nickname.split("#")
-
-    return [nickname, `#${nicknameTag}`]
 }
 
 export function validateNickname(nickname: string): boolean {

@@ -1,0 +1,11 @@
+@import "src/style/colors.scss";
+
+.Base {
+  color: $col_text_white;
+}
+
+.Tag {
+  margin-left: 2px;
+  color: $col_text_nickname_tag;
+}
+
