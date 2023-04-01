@@ -32,7 +32,7 @@ const userSlice = createSlice({
             return {users: {}}
         },
 
-        loadUser(state, action: PayloadAction<UserPayload>) {
+        addUser(state, action: PayloadAction<UserPayload>) {
             state.users[action.payload.id] = action.payload.user
         },
 
@@ -56,13 +56,13 @@ export class User {
             try {
                 let user = await UserApi.get(id)
 
-                dispatch(UserActions.loadUser({id, user}))
+                dispatch(UserActions.addUser({id, user}))
                 dispatch(CentrifugoManager.subscribeUser(user.id))
 
                 console.log("user: loaded", user.id)
             } catch (err) {
                 if (err.code == UserErrors.ERR_USER_NOT_FOUND) {
-                    dispatch(UserActions.loadUser({id, user: {} as UserModel}))
+                    dispatch(UserActions.addUser({id, user: {} as UserModel}))
 
                     return
                 }
@@ -85,7 +85,7 @@ export class User {
                 let user = await UserApi.search(nickname)
 
                 // Loading found user
-                dispatch(UserActions.loadUser({id: user.id, user}))
+                dispatch(UserActions.addUser({id: user.id, user}))
                 dispatch(CentrifugoManager.subscribeUser(user.id))
 
                 dispatch(UserActions.searchUser({userId: user.id}))
@@ -118,7 +118,7 @@ export class User {
 
                 let user = userState.users[authState.userId]
 
-                dispatch(UserActions.loadUser({
+                dispatch(UserActions.addUser({
                     id: user.id,
                     user: {...user, status}
                 }))

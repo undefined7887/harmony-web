@@ -13,6 +13,9 @@ import {Nickname} from "src/render/main/common/Nickname";
 import {MessageItem} from "src/render/main/items/MessageItem";
 
 import Styles from "src/render/main/WorkspacePanel.module.scss"
+import {Spacer} from "src/render/common/Spacer";
+import {classes} from "src/render/utils";
+import {Call, CallState} from "src/internal/services/call";
 
 const SCROLL_THRESHOLD = 2
 
@@ -25,6 +28,8 @@ export function WorkspacePanel({chatId, chatType}: Props) {
     let authState = useSelector<AppState, AuthState>(state => state.auth)
     let userState = useSelector<AppState, UserState>(state => state.user)
     let chatState = useSelector<AppState, ChatState>(state => state.chat)
+    let callState = useSelector<AppState, CallState>(state => state.call)
+
     let dispatch = useDispatch<AppDispatch>()
 
     let messageListRef = useRef<HTMLDivElement>()
@@ -61,6 +66,10 @@ export function WorkspacePanel({chatId, chatType}: Props) {
 
     function onInputTyping() {
         dispatch(Chat.updateChatTyping(chatId, chatType, true))
+    }
+
+    function onCallClick() {
+        dispatch(Call.createCall(chatId))
     }
 
     function renderStatus(): React.ReactElement {
@@ -102,6 +111,17 @@ export function WorkspacePanel({chatId, chatType}: Props) {
 
                         {renderStatus()}
                     </div>
+                    <Spacer/>
+                    {
+                        !callState.call
+                            ? (
+                                <div className={classes(Styles.HeaderCall, Styles.MaterialIcon)}
+                                     onClick={() => onCallClick()}>
+                                    call
+                                </div>
+                            )
+                            : <></>
+                    }
                 </div>
 
                 <div ref={messageListRef}

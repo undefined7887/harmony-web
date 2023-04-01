@@ -263,7 +263,7 @@ export class Auth {
                 await timeout(API_TIMEOUT);
                 let user = await UserApi.getSelf()
 
-                dispatch(UserActions.loadUser({id: user.id, user}))
+                dispatch(UserActions.addUser({id: user.id, user}))
                 dispatch(AuthActions.auth({userId: user.id}))
 
                 console.log("auth: signed in as", user.nickname)
@@ -304,7 +304,7 @@ export class Auth {
                 setJwtCookie(signInResult.user_token)
 
                 // Authenticating globally
-                dispatch(UserActions.loadUser({id: signInResult.user.id, user: signInResult.user}))
+                dispatch(UserActions.addUser({id: signInResult.user.id, user: signInResult.user}))
                 dispatch(AuthActions.auth({userId: signInResult.user.id}))
 
                 console.log("auth: signed in as", signInResult.user.nickname)
@@ -340,7 +340,7 @@ export class Auth {
                 setJwtCookie(signUpResult.user_token)
 
                 // Authenticating globally
-                dispatch(UserActions.loadUser({id: signUpResult.user.id, user: signUpResult.user}))
+                dispatch(UserActions.addUser({id: signUpResult.user.id, user: signUpResult.user}))
                 dispatch(AuthActions.auth({userId: signUpResult.user.id}))
 
                 console.log("auth: signed up as", signUpResult.user.nickname)

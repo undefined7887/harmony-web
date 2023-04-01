@@ -12,11 +12,13 @@ import {ChatModel, ChatType} from "src/internal/api/chat";
 import Styles from "src/render/main/ListPanel.module.scss"
 import {UserModel} from "src/internal/api/user";
 import {Nickname} from "src/render/main/common/Nickname";
-import {Call} from "src/render/main/Call";
+import {CallPopup} from "src/render/main/CallPopup";
+import {Call, CallState} from "src/internal/services/call";
 
 export function ListPanel() {
     let userState = useSelector<AppState, UserState>(state => state.user)
     let chatState = useSelector<AppState, ChatState>(state => state.chat)
+    let callState = useSelector<AppState, CallState>(state => state.call)
     let dispatch = useDispatch<AppDispatch>()
 
     let searchUser = userState.users[userState.searchUser]
@@ -27,6 +29,12 @@ export function ListPanel() {
             return
         }
     }, [chatState.chats])
+
+    useEffect(() => {
+        if (!callState.call) {
+            dispatch(Call.getCall())
+        }
+    }, [callState.call])
 
     function onSearchInputChange(text: string) {
         let nickname = text.replace(" ", "")
@@ -71,11 +79,13 @@ export function ListPanel() {
             </div>
 
             <Spacer/>
+
             {
-                searchUser
-                    ? <Call user={searchUser}/>
+                callState.call
+                    ? <CallPopup/>
                     : <></>
             }
+
             <Profile/>
         </div>
     )

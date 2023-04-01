@@ -3,13 +3,15 @@ import {AppThunkAction} from "src/internal/store";
 import {Centrifuge, PublicationContext, State} from "centrifuge";
 
 import config from "config/config.json"
-import {Chat, ChatActions, TYPING_CHECK_TIMEOUT} from "src/internal/services/chat";
+import {ChatActions, TYPING_CHECK_TIMEOUT} from "src/internal/services/chat";
 import {ChatReadUpdateNotification, ChatType, ChatTypingUpdateNotification, MessageModel} from "src/internal/api/chat";
 import {AuthActions} from "src/internal/services/auth";
-import {User, UserActions} from "src/internal/services/user";
+import {UserActions} from "src/internal/services/user";
 import {UserModel} from "src/internal/api/user";
 import {timeout} from "src/internal/utils/common";
 import {API_TIMEOUT} from "src/internal/api/common";
+import {CallApi, CallModel, CallProxyDataNotification, CallStatus} from "src/internal/api/call";
+import {Call, CallActions} from "src/internal/services/call";
 
 export interface CentrifugoState {
     connected: boolean
@@ -56,6 +58,7 @@ export class CentrifugoManager {
                 dispatch(AuthActions.reset())
                 dispatch(UserActions.reset())
                 dispatch(ChatActions.reset())
+                dispatch(CallActions.reset())
             })
 
             CentrifugoManager.connection.on("state", ctx => {
@@ -80,6 +83,21 @@ export class CentrifugoManager {
             CentrifugoManager.subscribe(
                 `chat:typing/updates#${authState.userId}`,
                 CentrifugoManager.onChatTypingUpdates(dispatch, getState)
+            )
+
+            CentrifugoManager.subscribe(
+                `call:new#${authState.userId}`,
+                CentrifugoManager.onNewCall(dispatch)
+            )
+
+            CentrifugoManager.subscribe(
+                `call:updates#${authState.userId}`,
+                CentrifugoManager.onCallUpdates(dispatch)
+            )
+
+            CentrifugoManager.subscribe(
+                `call:data#${authState.userId}`,
+                CentrifugoManager.onCallProxyData(dispatch)
             )
 
             CentrifugoManager.connection.connect()
@@ -115,7 +133,7 @@ export class CentrifugoManager {
         return async function (ctx: PublicationContext) {
             let user = ctx.data as UserModel
 
-            dispatch(UserActions.loadUser({id: user.id, user}))
+            dispatch(UserActions.addUser({id: user.id, user}))
         }
     }
 
@@ -194,6 +212,44 @@ export class CentrifugoManager {
                     typing: false
                 }))
             }, TYPING_CHECK_TIMEOUT)
+        }
+    }
+
+    private static onNewCall(dispatch): (PublicationContext) => void {
+        return async function (ctx: PublicationContext) {
+            let call = ctx.data as CallModel
+
+            console.log("centrifugo: call: new")
+
+            dispatch(CallActions.addCall({call}))
+        }
+    }
+
+    private static onCallUpdates(dispatch): (PublicationContext) => void {
+        return async function (ctx: PublicationContext) {
+            let call = ctx.data as CallModel
+
+            console.log("centrifugo: call: update status:", call.status)
+
+            dispatch(CallActions.updateCall({status: call.status}))
+
+            if (call.status == CallStatus.ACCEPTED) {
+                dispatch(Call.createPeerConnection(false))
+
+                return
+            }
+
+            // Declined or finished
+            dispatch(Call.endCall())
+        }
+    }
+
+    private static onCallProxyData(dispatch): (PublicationContext) => void {
+        return async function (ctx: PublicationContext) {
+            let proxyDataNotification = ctx.data as CallProxyDataNotification
+
+            console.log("centrifugo: call: proxy data", proxyDataNotification.name)
+            dispatch(Call.updatePeerConnection(proxyDataNotification.name, proxyDataNotification.data))
         }
     }
 }
