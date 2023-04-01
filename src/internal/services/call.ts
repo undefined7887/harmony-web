@@ -291,7 +291,7 @@ export class Call {
                 return
             }
 
-            if (callState.call.status != CallStatus.RTC_CONNECTED) {
+            if (callState.call.status == CallStatus.RTC_EXCHANGING) {
                 console.log("call: webrtc: ending call due to timeout")
                 dispatch(Call.endCall())
             }
