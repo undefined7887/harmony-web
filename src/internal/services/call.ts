@@ -191,6 +191,10 @@ export class Call {
                 dispatch(CallActions.addRemoteStream({
                     stream: e.streams[0]
                 }))
+
+                dispatch(CallActions.updateCall({
+                    status: CallStatus.RTC_CONNECTED
+                }))
             }
 
             peerConnection.onicecandidate = function (e) {
