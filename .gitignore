@@ -9,4 +9,4 @@ yarn-error.log
 
 # Confi and Secrets
 secrets/*.json
-config/*.json
+config/config.json
