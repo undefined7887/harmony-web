@@ -8,5 +8,5 @@ node_modules
 yarn-error.log
 
 # Confi and Secrets
-secrets/*.json
+secrets/google_credentials.json
 config/config.json
