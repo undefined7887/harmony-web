@@ -168,6 +168,12 @@ function Input({onText, onTyping}: InputProps) {
     function onKeyDown() {
         let now = new Date().getTime()
 
+        if (lastTyping == 0) {
+            setLastTyping(now)
+
+            return
+        }
+
         if (now - lastTyping > TYPING_TIMEOUT) {
             onTyping()
 
