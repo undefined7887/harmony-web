@@ -170,9 +170,9 @@ function Input({onText, onTyping}: InputProps) {
 
         if (now - lastTyping > TYPING_TIMEOUT) {
             onTyping()
-        }
 
-        setLastTyping(now)
+            setLastTyping(now)
+        }
     }
 
     return (
